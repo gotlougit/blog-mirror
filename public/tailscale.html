@@ -1,0 +1,80 @@
+<html>
+<head>
+	<link rel='stylesheet' type='text/css' href='styles/style.css'>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Tech Highlight: Tailscale Overview/Review - Nonchalant Guidance</title>
+</head>
+<div align='center'>
+<h1><a href="index.html">Nonchalant Guidance</a></h1>
+<p><a href='aboutme.html'>About Me</a>·<a href='comingsoon.html' title='coming soon!'>RSS</a>·<a href="https://sr.ht/~gotlou">My Projects</a>·<a href='https://linkedin.com/in/saksham--mittal' title='LinkedIn'>LinkedIn</a></p>
+</div>
+<form method="get" id="ddgSearch" action="https://duckduckgo.com/">
+    <input type="hidden" name="sites" value="gotlou.srht.site"/>
+    <input type="hidden" name="k7" value="#ffffff"/>
+    <input type="hidden" name="k8" value="#222222"/>
+    <input type="hidden" name="k9" value="#00278e"/>
+    <input type="hidden" name="kx" value="#20692b"/>
+    <input type="hidden" name="kj" value="#fafafa"/>
+    <input type="hidden" name="kt" value="p"/>
+    <input type="text" name="q" placeholder="Search this website.." aria-label="Search gotlou.srht.site on DuckDuckGo"/>
+    <button type="submit">Search</button>
+</form>
+<hr />
+<!-- HEAD END -->
+Added on: Thursday, 28 July, 2022 | Updated on: -
+<h1 id="tech-highlight-tailscale-overviewreview">Tech Highlight: Tailscale Overview/Review</h1>
+<h2 id="a-love-letter-to-some-pretty-cool-tech-and-a-good-way-of-conducting-business">A love letter to some pretty cool tech and a good way of conducting business</h2>
+<h3 id="introduction">Introduction</h3>
+<p>The Internet today is flawed. We possess smartphones, tablets and laptops that surpass the performance capabilities of servers from 20-30 years ago, yet we can’t talk to them without the use of some intermediary: a server to connect to. This approach is flawed and inefficient since it will be a single choke point for everyone’s traffic, not to mention the privacy-related drawbacks (one entity seeing who everyone is talking to….).</p>
+<p>Examples of this centralization hurting everyone:</p>
+<ul>
+<li>Hobbyists can’t just use their Pis to host random services they want to without paying a VIPS provider for an inferior machine all because they provide static IP addresses and open ports for hosting services, or to request their Internet Service Provider to open up ports or assign them a static IP address, which, while doable, does leave them open to DDoS attacks and makes their services as reliable as residential networks and power supplies are.</li>
+</ul>
+<p>We can’t even access resources on our local network without some corporations’ servers acting as a middleman.</p>
+<ul>
+<li>Companies use complicated VPN setups which route all their employees’ traffic through a central set of servers, which adds a bottleneck and introduces complexity.</li>
+</ul>
+<p>Tailscale is a clever solution to this problem. It uses <a href="https://www.wireguard.com/">WireGuard</a> as it’s base to build a mesh network for your devices, essentially making it appear as if they are all connected to the same network. Each device gets a static IP on this network, which is in the <a href="https://en.wikipedia.org/wiki/Carrier-grade_NAT#Shared_address_space">Carrier-grade NAT address space</a> to avoid any collisions with your own networks. Tailscale by default only ever routes connections to machines on this mesh network through the WireGuard VPN, but you can make a machine advertise itself as an exit node to route all your Internet traffic through that device, effectively making a traditional consumer VPN typically used to mask IP addresses.</p>
+<p>I have been using Tailscale for a couple weeks now and in the process, have become profoundly enamoured with the tech.</p>
+<h3 id="heres-what-i-like">Here’s what I like:</h3>
+<ul>
+<li><p>The install process is stupidly easy. A script basically sets up the repos for your Linux distro, after which you can use your package manager to install Tailscale, or (for Windows, Mac, Android or iOS) you just install the application. After authenticating with one of the identity providers they support (we’ll discuss this later), you are just connected to your mesh network (Tailscale calls it a tailnet).</p></li>
+<li><p>The docs are amazing, and the blog is phenomenal. Their article on <a href="https://tailscale.com/blog/how-nat-traversal-works/">NAT traversal</a> and <a href="https://tailscale.com/blog/free-plan/">how they maintain their free plan</a> are excellent examples. In fact, I am using the former as a sort of guide to build something you may find interesting (more on this later).</p></li>
+</ul>
+<p>As for the latter, I really appreciate them addressing how it is that they have such a good free plan. They clearly outline the fact that since their software makes direct connections, it doesn’t really matter how many devices you have, the amount of traffic the company itself has to deal with is minuscule (an IP address, port, pubkey and maybe some authentication info). Having a free plan allows developers and hobbyists to try out the software, and later be encouraged by the experience to nudge their companies to try it out as well, getting some valuable enterprise customers over the long run as well as getting the word out and gaining free publicity (ahem). They also try to keep the DERP (relays used when no direct connections can be made) costs low through some manner of rate limiting.</p>
+<ul>
+<li>Tailscale pretty much automates the sharing, expiry and regeneration of public keys through its control plane, which is centralized. Sharing the IP address of each device to each other is also done through the control plane.</li>
+</ul>
+<p>However, in most cases, it makes direct connections to your devices for maximum efficiency and privacy, and if it can’t, it just uses relays located around the world, combined with some careful management and rate limiting to make sure their hosting bill on AWS doesn’t skyrocket. What this means is that you can almost always access your device no matter what kind of connection you have, and that connection is completely private.</p>
+<p>Private keys never leave the device, and Tailscale doesn’t really ever have the ability to read your traffic info. The only real info they have is the fact that you connected from one device to another at this time.</p>
+<p>If you still think this is too much info, you can self-host the Tailscale control plane using <a href="https://github.com/juanfont/headscale">headscale</a> on an Internet-facing device. This creates 1 Tailnet you can connect your devices to. The Tailscale devs are fairly friendly towards this project, and the CLI and desktop apps come with options to change the control plane to whatever URL you wish. - MagicDNS is extremely convenient. The Tailscale client already (kinda sorta) hijacks DNS on the installed devices, so having it resolve your devices on the mesh network is fairly trivial. So, you don’t even need to remember the static IP addresses of your devices.</p>
+<ul>
+<li><p>One nice byproduct of this is that DNS over HTTPS can also work on Linux. Tailscale always resolves resources on the Internet through a DNS over HTTPS supported DNS resolver, like Cloudflare or Quad9. (This can be tweaked in the Tailscale admin panel). This is fairly useful on networks that block port 853, the port used for DNS over TLS, which seems to be more standard in Linux thanks to systemd-resolved only supporting DoT.</p></li>
+<li><p>HTTPS certs can be generated as well for certain web features to work. So, no more messing with self-signed certs and getting them in every program’s certificate store, Tailscale creates a subdomain on tailscale.net for you to use for each device.</p></li>
+<li><p>There is even an SSH server implementation that uses your Tailscale’s identity provider for authentication instead of SSH keys, as well as a file sharing command you can use to finally get files from one place to another without worrying about storage quotas or being rate limited or having some shady cloud provider read your files. I haven’t used these two yet, though. I just use the standard SSH server and scp.</p></li>
+</ul>
+<p>Tailscale helps automate tedious parts of networking so that we can all enjoy the Internet in its original, collaborative spirit.</p>
+<h3 id="heres-what-can-be-improved">Here’s what can be improved:</h3>
+<ul>
+<li>Tailscale is uses third party identity providers to login and authenticate; there is no normal “email/password” signup option. They justify it by saying that it lowers operational costs since they don’t have to bear as high a burden of securing logins, but still, it would be nice to have had normal sign up flows. If this does upset you, my best piece of advice is to just create a disposable GitHub account, as Google and Microsoft accounts have a higher chance of being locked out without giving them a phone number.</li>
+</ul>
+<p>I imagine for Tailscale the company, it is not a huge issue as their main customers are enterprises, who already use some identity provider. This could be a gripe for individuals using Tailscale. If this is an issue for you, consider self-hosting headscale.</p>
+<ul>
+<li>Tailscale uses a slightly modified version of the reference userspace implementation of WireGuard (written in Go) for almost everything (except for if a device is an exit node and is running Linux), which is not great for performance. It remains to be seen whether it can be possible to get the kernel implementation working with Tailscale, as Tailscale does use the userspace WireGuard to send some custom messages before the connection is truly established. For more information, you can <a href="https://github.com/tailscale/tailscale/issues/426">see this GitHub issue</a>.</li>
+</ul>
+<p>The only time (at the time of writing) Tailscale <strong>does</strong> use the kernel implementation is when a Linux device advertises itself as an exit node. Even then, the exit node is the only one that ever uses the kernel WireGuard.</p>
+<p>I’ll keep my eye on this and related issues because if this does end up being done. Tailscale will be much faster for it.</p>
+<ul>
+<li>Tailscale’s client apps are not all uniform with respect to support for headscale, the self hosted Tailscale control plane software I was talking about earlier. iOS’ Tailscale port doesn’t have the feature to change the control plane endpoint, and the Android app needs to be recompiled. (check <a href="headscale&#39;s%20client%20OS%20support">https://github.com/juanfont/headscale#client-os-support</a> for more details and updates on if this changed).</li>
+</ul>
+<h3 id="conclusion">Conclusion</h3>
+<p>In spite of the gripes I have with their product, I really like Tailscale. It is cliché, but <strong>it just works</strong>. I use it to access my home network from afar for right now, even using a Raspberry Pi as a homemade VPN, and it has worked nicely so far. The security is pretty good, even if the third party authentication requirement means that both Tailscale and that identity provider can add devices to the Tailnet without your knowledge (though, again, it can’t exactly do a whole bunch of damage since the bulk of the business logic is still contained in the open source client, and also headscale exists if you really want to minimize this risk).</p>
+<p>If you don’t want to bother opening ports or using dynamic DNS services or really doing a whole lot of work related to NAT traversal, Tailscale is a good place to start (and hopefully end).</p>
+<p>That’s all for today. Bye for now!</p>
+<p>Note: “WireGuard” and the “WireGuard” logo are registered trademarks of Jason A. Donenfeld.</p>
+<!-- FOOT START -->
+<hr />
+<p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and footers (including this one) to any document that’s published here.</p>
+<p>Copyright © 2022 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a></p>
+</html>
