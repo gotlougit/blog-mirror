@@ -23,10 +23,7 @@
 <hr />
 <!-- HEAD END -->
 
-
-
-
-Added on: Wednesday, 02 March, 2022 | Updated on: Tuesday, 19 July, 2022
+<p>Added on: Wednesday, 02 March, 2022 | Updated on: Saturday, 30 July, 2022
 <h1 id="archiving-urls-automatically">Archiving URLs automatically</h1>
 <h2 id="a-foray-into-shell-scripting">A foray into shell scripting</h2>
 <p>I have been looking into getting into shell scripting for a long time, mostly because it’s a very simple but powerful way to automate boring and tedious tasks.</p>
@@ -36,7 +33,7 @@ Added on: Wednesday, 02 March, 2022 | Updated on: Tuesday, 19 July, 2022
 <p><img src="images/tuxradar_archived.png" alt="TuxRadar Archived Webpage" /> <em>Now, that’s better. Thanks Internet Archive!</em></p>
 <p><a href="https://archive.org">The Internet Archive</a> is an amazing project set up to build not only just a collection of webpages from years past and years to come, but also:</p>
 <ul>
-<li><p>Books in public domain, and some books not in the public domain can be borrowed as if from a library all aroudn the world, <em>free of charge</em></p></li>
+<li><p>Books in public domain, and some books not in the public domain can be borrowed as if from a library all around the world, <em>free of charge</em></p></li>
 <li><p>Music in the public domain</p></li>
 <li><p>Video (includes everything from silent movies to trailers of today’s blockbusters to maybe even some classics)</p></li>
 <li><p>Video games from old consoles and PC platforms, with the permission of the rights holder, which can even <em>be played in the browser itself</em> or optionally be downloaded from the Internet Archive, depending on how the rights holders have configured their uploads I believe.</p></li>
@@ -50,10 +47,9 @@ Added on: Wednesday, 02 March, 2022 | Updated on: Tuesday, 19 July, 2022
 <p>So, at this point, what I really wanted was to get a bit more familiar with shell scripting and use standard utilities to make a script that would read the raw HTML, extract the URLs and then use <code>curl</code> to send a request to the Internet Archive to archive them.</p>
 <p>I also didn’t really want to spam them with requests, so I also added a simple sleep command to send out requests every 2 seconds.</p>
 <p>The script just outputs the headers of the response gotten back from the Archive. If it’s a 302 FOUND message, and it has a location header with a web.archive.org URL, most likely it’s been archived.</p>
-<p>The code is at <a href="https://github.com/gotlougit/archiveurl">this link</a>. I initally was just going to post it here, but I decided that there were still some modifications to be made and it would be better to have them somewhere more easily updated.</p>
+<p>The code is at <a href="https://sr.ht/~gotlou/archiveurl">this link</a>. I initially was just going to post it here, but I decided that there were still some modifications to be made and it would be better to have them somewhere more easily updated.</p>
 <p>It’s also licensed under the public domain, so that not a single bit will be lost to the void (I kind of like that).</p>
 <p>That’s all for today. Bye for now!</p>
-
 
 <!-- FOOT START -->
 <hr />
