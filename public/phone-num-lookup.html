@@ -1,0 +1,86 @@
+<html>
+<head>
+	<link rel='stylesheet' type='text/css' href='styles/style.css'>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Phone Number Look-ups - Nonchalant Guidance</title>
+</head>
+<div align='center'>
+<h1><a href="index.html">Nonchalant Guidance</a></h1>
+<p><a href='aboutme.html'>About Me</a>·<a href='comingsoon.html' title='coming soon!'>RSS</a>·<a href="https://sr.ht/~gotlou">My Projects</a>·<a href='https://linkedin.com/in/saksham--mittal' title='LinkedIn'>LinkedIn</a></p>
+</div>
+<form method="get" id="ddgSearch" action="https://duckduckgo.com/">
+    <input type="hidden" name="sites" value="gotlou.srht.site"/>
+    <input type="hidden" name="k7" value="#ffffff"/>
+    <input type="hidden" name="k8" value="#222222"/>
+    <input type="hidden" name="k9" value="#00278e"/>
+    <input type="hidden" name="kx" value="#20692b"/>
+    <input type="hidden" name="kj" value="#fafafa"/>
+    <input type="hidden" name="kt" value="p"/>
+    <input type="text" name="q" placeholder="Search this website.." aria-label="Search gotlou.srht.site on DuckDuckGo"/>
+    <button type="submit">Search</button>
+</form>
+<hr />
+<!-- HEAD END -->
+Added on: Wednesday, 10 August, 2022 | Updated on: -
+<h1 id="phone-number-lookups">Phone Number Look-ups</h1>
+<h2 id="an-unexpected-way-to-extract-name-from-phone-numbers-in-india">An unexpected way to extract name from phone numbers in India</h2>
+<p>I, like many people, am very bothered with spam calls. These unwanted callers telling me about a loan deal going on or a great credit card that gives me enough points to go to space with a billionaire. I couldn’t care less about these. I also don’t appreciate the spam text messages as well, and they can often contain links to spams.</p>
+<p>Now, in India, there is a Do Not Disturb list from TRAI, the telecom regulator, which can be activated by going to your carrier’s website/app and selecting the right option. See this <a href="https://www.jio.com/en-in/faq/apps/my-jio/how-do-i-activate-do-not-disturb-dnd.html">help article</a> for Reliance Jio, <a href="https://www.myvi.in/dnd">this page to activate DND for Vi</a>, and <a href="https://www.airtel.in/airtel-dnd/">this page for Airtel</a>. While this option does seem to lessen the spam, there are still a couple callers which do not obey this setting. It is best to just report those to TRAI using the DND app, available on the <a href="https://itunes.apple.com/in/app/trai-dnd-do-not-disturb/id1443781196">iOS App Store</a> and <a href="https://play.google.com/store/apps/details?id=trai.gov.in.dnd">Google Play Store</a>.</p>
+<p>This will prevent most large-scale spammers, but will not stop a smaller operation or even scammers who will just keep calling. Also, it doesn’t help prevent other misuses of telecom networks, like being harassed over the phone, etc. (There are also less mild examples of caller ID being needed) If only you could just find whose phone number that was!</p>
+<p>(Alas, caller ID standards implemented in the telecom space just have never been adopted for some reason).</p>
+<p>Except, of course there’s a solution™. Let caller ID apps like Truecaller have access to your contacts, phone records, and text messages, and they will stop the spam and tell you who called you!</p>
+<p>This is, in my opinion, a bad solution. These apps don’t have good privacy policies, and have too many people giving their phone records to a private company. India doesn’t have a data protection law either right now, and it is worrying to think what will happen if they are compromised.</p>
+<p>(By the way, if you want to unlist your number from Truecaller, go to <a href="https://www.truecaller.com/unlisting">this link</a>).</p>
+<p>So, what is the <em>real</em> solution? Is there no real way to get caller ID working in the age of information for a common man?</p>
+<h3 id="the-real-ish-method">The Real(-ish) Method</h3>
+<h4 id="some-background">Some background</h4>
+<p><a href="https://en.wikipedia.org/wiki/Unified_Payments_Interface">United Payments Interface</a>, or UPI for short, is a revolutionary payment system devised by the <a href="https://www.npci.org.in/">National Payments Corporation of India</a>, which allows users to just use a smartphone app to transfer money directly and instantly from their bank account to any other bank account, simply by entering a Virtual Private Address, or VPA, (which resembles an email address: think prefix@suffix), phone number, or the traditional bank account number + IFSC. Merchants typically have a QR code prominently displayed in their establishments so consumers can easily scan it within their UPI apps and pay easily.</p>
+<p>This was a paradigm shift for a country that had predominantly used cash, and thanks to the ultra low prices of smartphones and 4G phone plans, it took off like crazy. What is even more extraordinary is that there are no transaction fees levied on consumers, so you can use this system to send money to and receive money from friends and family as well.</p>
+<p>There are also many UPI apps, from the ones that your bank has to external ones (like PayTM or PhonePe) to BHIM, which can be thought of as the reference implementation, maintained by the NPCI. You can use any of these, send money to anyone using any other app etc. It is truly an example of federation done right (though can it be federated when there is one organization being in-charge of everything?)</p>
+<p>Okay, so this is great, but why does this matter?</p>
+<h4 id="why-it-matters">Why it Matters</h4>
+<p>Well, the default VPA of many apps is simply the customer’s phone number + @ + a suitable suffix (this usually correlates to the app or bank that the customer is using: “paytm” for PayTM, anything beginning in “wa” is WhatsApp Pay, anything beginning in “ok” is Google Pay, “upi” is BHIM, etc).</p>
+<p>Also, whenever you enter a phone number for paying in a UPI app, there is an option given to “verify” that number. Upon clicking on it, it usually returns the name associated with that phone number in the UPI system.</p>
+<p>Adding these two facts together, could it be possible to simply do a brute force search until we find a name?</p>
+<p>This approach does have certain niceties about it:</p>
+<ul>
+<li><p>People can generally register phone numbers in someone else’s name (see kids with phones), but when it comes to a bank account, especially one with UPI being used, it will probably be held by the user of that phone number, as UPI can’t be used on anything other than an Android of iOS device.</p></li>
+<li><p>There is no way to opt out unless someone changes their VPA, which <em>can</em> be done but it is quite likely (especially when keeping in mind Indians’ typical laissez-faire approach towards digital privacy) that they may not really care enough to do it.</p></li>
+<li><p>The name that you will get will be a <em>legal</em> name as well, unlike what Truecaller’s results will sometimes show as a result of the “helpful” crowd editing feature.</p></li>
+</ul>
+<p>There are other downsides though:</p>
+<ul>
+<li><p>No landlines can be checked for this. You might ask, “Who is really using a landline these days?”, in which case I’ll answer in the next point.</p></li>
+<li><p>If the number is of a call center or similar large enterprise, it is highly unlikely there is a bank account, let alone a UPI VPA, associated with the phone number. It’s sometimes not even a <em>mobile</em> number either.</p></li>
+<li><p>In my opinion, this approach is only really good in situations where you are personally called from what seems to be a mobile number. The search also takes longer than Truecaller, which is a given as here we are just making guesses to get to our answer, whereas Truecaller’s app simply needs to query a backend which will then query a database and give our answer accordingly. Many requests will take longer than one, I am afraid.</p></li>
+</ul>
+<p>Of course, why are we even discussing this?</p>
+<p>This can’t be possible, right? I mean, a brute force search on a somewhat sensitive network (a payments system) shouldn’t be possible?</p>
+<h4 id="brute-forcing-it-but-smartly">Brute Forcing It (but smartly)</h4>
+<p>I did find a website which allows you to make such requests: you simply pass it a VPA and it returns you whether there is a UPI account that exists with that VPA, and if so, the name of the account holder.</p>
+<p>This website, upibankvalidator.com, has no real info about it. The API documentation consists of a <em>single page PDF</em>, there is no privacy policy, and according to their home page, they exist so that you don’t have to pay Rs 2 from the big guys for validating a VPA. It is a fairly shady website. However, compared to the information Truecaller takes, there is almost nothing of value being given back to this website other than maybe your IP address.</p>
+<p>No authentication is really required, and as far as I can tell in my testing, there doesn’t seem to be a rate limit either (I am sure there is one, I just haven’t hit it yet).</p>
+<p>Nonetheless, I wanted to make the experience better for the user. The tool that inspired my journey into this name via UPI method (found <a href="https://github.com/LuD1161/upi-recon-cli">here</a>, thanks <a href="https://aseemshrey.in/">Aseem Shrey</a>!) did an exhaustive search alphabetically, using 128 possible VPAs!. Most of these are just small banks and, statistically speaking, it makes more sense to check the most popular apps first. In fact, many searches can be completed just by checking the most popular VPAs.</p>
+<p>So, I filtered out most of the VPAs from the list from the upi-recon-cli project to only include the handful that have dominated the UPI market, which include but are not limited to:</p>
+<ul>
+<li><p>PayTM</p></li>
+<li><p>BHIM</p></li>
+<li><p>PhonePe</p></li>
+<li><p>Google Pay (there are multiple VPAs here depending on what bank the customer has)</p></li>
+<li><p>WhatsApp Pay (same deal as Google Pay)</p></li>
+</ul>
+<p>I wanted to keep a balance between covering enough apps that someone shouldn’t have to resort to running an intensive scan but still make the default option fast enough so that someone doesn’t feel impatient.</p>
+<h4 id="implementation">Implementation</h4>
+<p>I wrote a small shell script as a proof of concept (available <a href="https://git.sr.ht/~gotlou/phone_nums_lookup_cli">here</a>) and implemented this behaviour. It pretty much just reads the suffix file (by default a popular collection I created, but it can also do the alphabetical brute search of 128 addresses as well with another option), queries upibankvalidator if that VPA exists, and if it does, just return the name of the account holder and exits.</p>
+<p>I used <a href="https://httpie.io/">httpie</a>, which was a bit easier to work with than cURL in my experience, and jq to parse the JSON response easily.</p>
+<p>This is really only meant for testing purposes, and I do want to build a better front end so that other people can use it.</p>
+<p>Nevertheless, I decided to release the small CLI I created so that usage numbers can stay low, and the service can still stay online (how it is still staying online as a completely free API with no real monetization plans visible, I have no idea). Please use the service with care. I assume no liabilities, and am not associated in any way with the upibankvalidator.com website.</p>
+<h3 id="conclusion">Conclusion</h3>
+<p>Overall, we see that there is a pretty nice loophole to find phone numbers by using a peculiar property of UPI payments system and a <em>very</em> generous, free API. I hope you found this deep dive useful, and the tool as well.</p>
+<p>That’s all for today. Bye for now!</p>
+<!-- FOOT START -->
+<hr />
+<p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and footers (including this one) to any document that’s published here.</p>
+<p>Copyright © 2022 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a></p>
+</html>
