@@ -1,25 +1,43 @@
 html {
-  scrollbar-width: thin;
+	scrollbar-width: thin;
 }
 
 body {
-  background-color: #222222;
-  color:#bababa;
-  font-size: calc(1em + 0.25vw);
-  font-family: monospace;
-  margin: calc(1em + 2.5vw);
+	background-color: #222222;
+	color:#bababa;
+	font-size: calc(1em + 0.25vw);
+	font-family: monospace;
+	margin: calc(1em + 2.5vw);
 }
 
 h1 {
-  color: #eaeaea;
-  text-align: center;
-  font-size: calc(2em + 1vw);
+	color: #eaeaea;
+	text-align: center;
+	font-size: calc(2em + 1vw);
 }
 
 a {
-  color:#eaeaea;
+	color:#eaeaea;
+}
+
+a:hover {
+	animation-name: emphasize;
+	animation-duration: 1s;
+}
+
+@keyframes emphasize {
+	from {
+		background-color: #222222;
+
+	} 
+	50% {
+		background-color: #111111;
+	}
+	to {
+		background-color: #000000;
+	}
 }
 
 code {
-   background-color: #444444;
+	background-color: #444444;
 }
