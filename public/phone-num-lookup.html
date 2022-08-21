@@ -22,7 +22,8 @@
 </form>
 <hr />
 <!-- HEAD END -->
-Added on: Wednesday, 10 August, 2022 | Updated on: -
+
+<p>Added on: Wednesday, 10 August, 2022 | Updated on: Sunday, 21 August, 2022
 <h1 id="phone-number-lookups">Phone Number Look-ups</h1>
 <h2 id="an-unexpected-way-to-extract-name-from-phone-numbers-in-india">An unexpected way to extract name from phone numbers in India</h2>
 <p>I, like many people, am very bothered with spam calls. These unwanted callers telling me about a loan deal going on or a great credit card that gives me enough points to go to space with a billionaire. I couldn’t care less about these. I also don’t appreciate the spam text messages as well, and they can often contain links to spams.</p>
@@ -33,10 +34,10 @@ Added on: Wednesday, 10 August, 2022 | Updated on: -
 <p>This is, in my opinion, a bad solution. These apps don’t have good privacy policies, and have too many people giving their phone records to a private company. India doesn’t have a data protection law either right now, and it is worrying to think what will happen if they are compromised.</p>
 <p>(By the way, if you want to unlist your number from Truecaller, go to <a href="https://www.truecaller.com/unlisting">this link</a>).</p>
 <p>So, what is the <em>real</em> solution? Is there no real way to get caller ID working in the age of information for a common man?</p>
-<h3 id="the-real-ish-method">The Real(-ish) Method</h3>
+<h3 id="the-real-ish-solution">The <em>Real(-ish)</em> Solution</h3>
 <h4 id="some-background">Some background</h4>
 <p><a href="https://en.wikipedia.org/wiki/Unified_Payments_Interface">United Payments Interface</a>, or UPI for short, is a revolutionary payment system devised by the <a href="https://www.npci.org.in/">National Payments Corporation of India</a>, which allows users to just use a smartphone app to transfer money directly and instantly from their bank account to any other bank account, simply by entering a Virtual Private Address, or VPA, (which resembles an email address: think prefix@suffix), phone number, or the traditional bank account number + IFSC. Merchants typically have a QR code prominently displayed in their establishments so consumers can easily scan it within their UPI apps and pay easily.</p>
-<p>This was a paradigm shift for a country that had predominantly used cash, and thanks to the ultra low prices of smartphones and 4G phone plans, it took off like crazy. What is even more extraordinary is that there are no transaction fees levied on consumers, so you can use this system to send money to and receive money from friends and family as well.</p>
+<p>This was a paradigm shift for a country that had predominantly used cash, and thanks to the ultra low prices of smartphones and 4G phone plans, it took off like crazy. What is even more extraordinary is that there are no transaction fees levied on consumers, so anyone from roadside vendors, small shopkeepers, and technology-averse friends and family can all easily use it to send and receive money.</p>
 <p>There are also many UPI apps, from the ones that your bank has to external ones (like PayTM or PhonePe) to BHIM, which can be thought of as the reference implementation, maintained by the NPCI. You can use any of these, send money to anyone using any other app etc. It is truly an example of federation done right (though can it be federated when there is one organization being in-charge of everything?)</p>
 <p>Okay, so this is great, but why does this matter?</p>
 <h4 id="why-it-matters">Why it Matters</h4>
@@ -45,7 +46,7 @@ Added on: Wednesday, 10 August, 2022 | Updated on: -
 <p>Adding these two facts together, could it be possible to simply do a brute force search until we find a name?</p>
 <p>This approach does have certain niceties about it:</p>
 <ul>
-<li><p>People can generally register phone numbers in someone else’s name (see kids with phones), but when it comes to a bank account, especially one with UPI being used, it will probably be held by the user of that phone number, as UPI can’t be used on anything other than an Android of iOS device.</p></li>
+<li><p>People can generally register phone numbers in someone else’s name (see kids with phones), but when it comes to a bank account, especially one with UPI being used, it will probably be held by the user of that phone number, as UPI can’t be used on anything other than an Android on iOS device with the SIM card corresponding to that phone number inside the device for security purposes.</p></li>
 <li><p>There is no way to opt out unless someone changes their VPA, which <em>can</em> be done but it is quite likely (especially when keeping in mind Indians’ typical laissez-faire approach towards digital privacy) that they may not really care enough to do it.</p></li>
 <li><p>The name that you will get will be a <em>legal</em> name as well, unlike what Truecaller’s results will sometimes show as a result of the “helpful” crowd editing feature.</p></li>
 </ul>
@@ -54,6 +55,7 @@ Added on: Wednesday, 10 August, 2022 | Updated on: -
 <li><p>No landlines can be checked for this. You might ask, “Who is really using a landline these days?”, in which case I’ll answer in the next point.</p></li>
 <li><p>If the number is of a call center or similar large enterprise, it is highly unlikely there is a bank account, let alone a UPI VPA, associated with the phone number. It’s sometimes not even a <em>mobile</em> number either.</p></li>
 <li><p>In my opinion, this approach is only really good in situations where you are personally called from what seems to be a mobile number. The search also takes longer than Truecaller, which is a given as here we are just making guesses to get to our answer, whereas Truecaller’s app simply needs to query a backend which will then query a database and give our answer accordingly. Many requests will take longer than one, I am afraid.</p></li>
+<li><p><em>Edit: I found out later that Google Pay uses the prefix of your GMail ID for the VPA prefix as well rather than phone numbers, so anyone only using Google Pay will not be identified by this approach</em></p></li>
 </ul>
 <p>Of course, why are we even discussing this?</p>
 <p>This can’t be possible, right? I mean, a brute force search on a somewhat sensitive network (a payments system) shouldn’t be possible?</p>
@@ -68,7 +70,10 @@ Added on: Wednesday, 10 August, 2022 | Updated on: -
 <li><p>BHIM</p></li>
 <li><p>PhonePe</p></li>
 <li><p>Google Pay (there are multiple VPAs here depending on what bank the customer has)</p></li>
-<li><p>WhatsApp Pay (same deal as Google Pay)</p></li>
+</ul>
+<p><em>Edit: This will likely be removed since it is a fairly useless check, see above edits for info</em></p>
+<ul>
+<li>WhatsApp Pay (same deal as Google Pay)</li>
 </ul>
 <p>I wanted to keep a balance between covering enough apps that someone shouldn’t have to resort to running an intensive scan but still make the default option fast enough so that someone doesn’t feel impatient.</p>
 <h4 id="implementation">Implementation</h4>
@@ -79,8 +84,10 @@ Added on: Wednesday, 10 August, 2022 | Updated on: -
 <h3 id="conclusion">Conclusion</h3>
 <p>Overall, we see that there is a pretty nice loophole to find phone numbers by using a peculiar property of UPI payments system and a <em>very</em> generous, free API. I hope you found this deep dive useful, and the tool as well.</p>
 <p>That’s all for today. Bye for now!</p>
+
 <!-- FOOT START -->
 <hr />
 <p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and footers (including this one) to any document that’s published here.</p>
 <p>Copyright © 2022 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a></p>
 </html>
+
