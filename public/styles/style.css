@@ -41,3 +41,8 @@ a:hover {
 code {
 	background-color: #444444;
 }
+
+.sidenote {
+	background-color: #888888;
+	color: #222222;
+}
