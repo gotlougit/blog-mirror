@@ -23,18 +23,14 @@
 <hr />
 <!-- HEAD END -->
 
-
-
-
-
-
-
-
-Added on: Sunday, 05 December, 2021 | Updated on: Tuesday, 19 July, 2022
+<p>Added on: Sunday, 05 December, 2021 | Updated on: Saturday, 27 August, 2022
 <h1 id="programs-ive-written">Programs I’ve Written</h1>
 <h2 id="an-overview-of-my-previous-projects">An overview of my previous projects</h2>
 <p>I’ve been programming for a fairly long time, and tinkering with computers for much longer than that. In that amount of time, I’d say I’ve tried my hand at a lot of different aspects of computing.</p>
-<p>This post is really just a look back at some of my projects and how they originated</p>
+<p>This post is really just a look back at some of my projects and how they originated.</p>
+<div class="sidenote">
+<p>Side Note: This particular article will likely not be maintained much due to the fact that I do not want to talk about future projects in this one post as they tend to be complicated enough to demand an article of their own. Consider this a non-exhaustive list of projects up until 2021 and a status update up to August 2022.</p>
+</div>
 <h3 id="my-list-of-projects">My list of projects</h3>
 <ul>
 <li><a href="https://github.com/gotlougit/ett">Eye Time Tracker</a></li>
@@ -73,49 +69,57 @@ Added on: Sunday, 05 December, 2021 | Updated on: Tuesday, 19 July, 2022
 <ul>
 <li>After scraper</li>
 </ul>
-<p>If you’re particularly observant, you’ll have noticed that there’s a lot of gaps in me releasing these projects on GitHub. The truth is that I’ve created (more accurately tried to create) lots of things, but I only released something on GitHub if it seemed to be a little original and was functional as well. If it had too many edge cases to fix or was far too ambitious for the time, I never published it.</p>
-<p>During 2020, I also started to work on a game for my 12th class computer science class with two of my friends called <a href="https://github.com/gotlougit/panzer">panzer</a>. There’s little to no git history for this, but that’s because I was unaware that GitHub had made private repositories free for non-paying users in 2020. We instead used the very low-tech option (by comparison) of just sending each other the changed source code files we’d worked on and pasted them into our working directories. At the end of each coding session, I’d create a zip folder and keep that as a backup of our work in case we messed up tomorrow.</p>
-<p>After the school year ended, we pretty much had the permission to publish the code on GitHub, and so my friends created accounts and I had them upload a part of the project so that all three of our names would show up as contributors on GitHub.</p>
+<p>If you’re particularly observant, you’ll have noticed that there’s a lot of gaps in me releasing these projects on GitHub. The truth is that I’ve created (more accurately <em>tried</em> to create) lots of things, but I only released something on GitHub if it seemed to be a little original and was functional as well. If it had too many edge cases to fix or was far too ambitious for the time, I never published it.</p>
+<p>During 2020, I also started to work on a game for my 12th class computer science class with two of my friends called <a href="https://github.com/gotlougit/panzer">panzer</a>. There’s little to no git history for this, but that’s because I was unaware that GitHub had made private repositories free for non-paying users in 2020. We instead used the very low-tech option of just sending each other the changed source code files we’d worked on and pasted them into our working directories. At the end of each coding session, I’d create a zip folder and keep that as a backup of our work in case we messed up tomorrow.</p>
+<p>The game itself is pretty cool, in my opinion. You control a tank whose job is to protect the base (in the center of the map) from a variety of bots which will spawn from the corners of the screen. The tank you control is basically invincible but the base is not, and the longer the bots are touching the base, the more health drains away from it. There is also a rage mode which is unlocked on getting 100 points or more and some powerups too. For how long it took for us to create it (maybe 1-2 hours of coding for ~4 days on average for 1.5-2 months, the last 2 weeks of which were really just polishing up the game a bit and creating the necessary documentation etc), I think it turned out pretty great. We used MySQL for keeping tracks of scores and generating the high scores table, which was really only there as it was a requirement in the school project guidelines.</p>
+<p>After the school year ended, we were free to publish the code on GitHub, and so my friends created accounts and I had them upload a part of the project so that all three of our names would show up as contributors on GitHub.</p>
 <p>Between this, I started to look into creating this blog as a way to spread information about a variety of things, as well as having a space to show off my projects and talk about them at length.</p>
 <ul>
-<li><a href="https://gotlougit.github.io">This blog</a></li>
+<li><a href="https://gotlou.srht.site">This blog</a></li>
 </ul>
-<p>Well, you’re reading it! This page is built using GitHub Pages, though I elected not to use any of their templates etc. I wrote the HTML and CSS myself since I wanted to learn more about web technologies, but I did also write a tool to help me create templates and apply them to any blogpost I write in the future with not too much work.</p>
-<p>I eventually plan to migrate this entire website to a custom domain, but I’ll still stick with hosting on GitHub Pages unless I get enough traffic to warrant setting up my own web server.</p>
+<p>Well, you’re reading it! This page was built using SourceHut Pages I wrote the HTML and CSS myself since I wanted to learn more about web technologies, but I did also write a tool to help me create templates and apply them to any blogpost I write in the future with not too much work.</p>
+<p>I migrated to SourceHut from GitHub, mostly for ideological reasons. I still maintain the GitHub account as it is necessary to contribute to many open source projects, but my own projects will be hosted on SourceHut only. I eventually plan to migrate this entire website to a custom domain, but I’ll still stick with hosting on SourceHut Pages unless I get enough traffic to warrant setting up my own web server.</p>
 <ul>
-<li><a href="https://github.com/gotlougit/blog-helper">blog-helper</a></li>
+<li><a href="https://sr.ht/~gotlou/blog-helper">blog-helper</a></li>
 </ul>
 <p>blog-helper is intended to help create blogposts more easily for me. There’s a config file written in JSON (but with fairly descriptive variable names) for me to enable and disable features as well as tweak how templates are added to the webpages. I’ve made it flexible enough to work with anyone’s webpages and it deliberately doesn’t do as much automation as other tools do (no one command publishing here!) so as to accomodate alternative workflows. Someone could add spell checks done before running blog-helper, while someone else could also compress all their webpages generated from here in order to save bandwidth for both themselves and their users, and so on and so forth.</p>
 <p>The code itself is very basic, and in fact scraper’s techniques of using Python’s inbuilt string parsing methods comes in very handy for a lot of stuff. The RSS integration does work, although I haven’t really enabled it for my website since I want to do that when I get a custom domain.</p>
 <p>This project also created a sort of spin off that one could use in their own projects as a drop-in module if they wanted-</p>
 <ul>
-<li><a href="https://github.com/gotlougit/config-manager">config-manager</a></li>
+<li><a href="https://sr.ht/~gotlou/config-manager">config-manager</a></li>
 </ul>
 <p>config-manager is in charge of JSON. That’s kind of it. It’ll save to a dictionary and it’ll load the config file into a dictionary from where you’re free to do whatever you desire.</p>
+<p>Essentially, it is a basic abstraction over JSON to ultimately generate a dictionary/key-value pair in Python.</p>
 <h3 id="whats-next">What’s next?</h3>
 <p>It’s somewhat mind-boggling to me to see how far I’ve managed to come from the beginning, but I have my sights set sorely on the future.</p>
 <ul>
 <li>I’ve gotten into C programming, and have started to contribute to open-source projects.</li>
 </ul>
 <p>The first one I contributed to was <a href="https://github.com/tldr-pages/tldr"><code>tldr</code></a>, which is a really nice project that creates very useful summaries of various programs so that you can find that one argument that you always forget to use that does what you need it to do. It also has lots of clients written in a variety of programs, like C, C++, Python, JavaScript, etc. which you can contribute to. In fact, you could write your own <code>tldr</code> client as well, there’s just some <a href="https://raw.githubusercontent.com/tldr-pages/tldr/main/CLIENT-SPECIFICATION.md">specifications you have to follow</a>.</p>
-<p>What I really like about <code>tldr</code> is that they have a really good review process for everything; from the client code to the pages they have. They’re also very systematic and organized, and their project is genuinely one of the most useful thing I’ve used. I can’t count the number of times I’ve searched up on how to do something with git (for example), and have had to wade through technical docs I can’t understand half the words of without going down seven rabbit holes, or StackOverflow answers for related things, or random websites full of spam and ads that contain very little actual info. The man pages are really good, but you have to know what you’re looking for. <code>tldr</code> occupies a nice middle ground, and one of the main advantages they have over similar projects is the excessive amount of standardization they follow. If you’re looking to contribute to them, <code>tldr</code> could benefit greatly from translating existing pages into other languages, as well as new pages for new tools that have cropped up.</p>
+<p>What I really like about <code>tldr</code> is that they have a really good review process for everything; from the client code to the pages they have. They’re also very systematic and organized, and their project is genuinely one of the most useful thing I’ve used.</p>
+<p>I can’t count the number of times I’ve searched up on how to do something with git (for example), and have had to wade through technical docs I can’t understand half the words of without going down seven rabbit holes, or StackOverflow answers for related things, or random websites full of spam and ads that contain very little actual info.</p>
+<p>The man pages are really good, but you have to know what you’re looking for. <code>tldr</code> occupies a nice middle ground, and one of the main advantages they have over similar projects is the excessive amount of standardization they follow.</p>
+<p>If you’re looking to contribute to them, <code>tldr</code> could benefit greatly from translating existing pages into other languages, as well as new pages for new tools that have cropped up.</p>
 <p>In fact, the usefulness of <code>tldr</code> is such that I sat down and wrote a basic search function for the Python client (the one I use) so that I could find stuff easily. This serves another use case that I can eliminate from my web browser, reducing context switching even more. For example, if I forgot how to change branches in git, I could:</p>
 <pre><code>1. Open my web browser and search &quot;change branches git&quot;
 
 2. Fire up a terminal and type:
 
 tldr git --search &quot;change branch&quot;</code></pre>
-
 <ul>
-<li><p>Somewhat related to this, I am also looking to participate in Google Summer of Code 2022. For this, I’ve been interacting with a couple of open source projects, and learning new things for fulfilling my curiosity and to better contribute to these projects.</p></li>
-<li><p>I’m messing around with a spare computer and trying to learn how Linux servers are deployed and set up (more on this in a future blog post).</p></li>
+<li>Somewhat related to this, I am also looking to participate in Google Summer of Code 2022. For this, I’ve been interacting with a couple of open source projects, and learning new things for fulfilling my curiosity and to better contribute to these projects.</li>
+</ul>
+<p><em>Update: While I couldn’t participate in GSoC 2022 due to time constraints, I did end up learing more C and developed two projects in it: <a href="https://sr.ht/~gotlou/cpanzer">cpanzer</a> and <a href="https://sr.ht/~gotlou/chip8-emulator">chip8-emulator</a>. I also wrote an article on the latter, which you can checkout <a href="chip8-emulator.html">here</a></em></p>
+<ul>
+<li>I’m messing around with a spare computer and trying to learn how Linux servers are deployed and set up (more on this in a future blog post).</li>
+</ul>
+<p><em>Update: I did reveal what I was up to <a href="setting-up-homeserver-pmos.html">here</a>.</em></p>
+<ul>
 <li><p>I’m getting back into some competitive programming, mostly as practice to improve my problem-solving skills, but also to learn some more DSA.</p></li>
 <li><p>In order to learn more about the nitty-gritty of computing, I’m planning on writing an emulator for CHIP-8. I’ve gathered the resources and am planning to write it in C. It’ll be a fun and interesting project, and I’ll be sure to write more about it here.</p></li>
 </ul>
+<p><em>Update: I did write that article. It’s over <a href="chip8-emulator.html">here</a>.</em></p>
 <p>That’s all for today. Bye now!</p>
-
-
-
 
 <!-- FOOT START -->
 <hr />
