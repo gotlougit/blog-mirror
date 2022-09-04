@@ -1,0 +1,51 @@
+<html>
+<head>
+	<link rel='stylesheet' type='text/css' href='styles/style.css'>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Phone Number Lookup (Part 2) - Nonchalant Guidance</title>
+</head>
+<div align='center'>
+<h1><a href="index.html">Nonchalant Guidance</a></h1>
+<p><a href='aboutme.html'>About Me</a>·<a href='comingsoon.html' title='coming soon!'>RSS</a>·<a href="https://sr.ht/~gotlou">My Projects</a>·<a href='https://linkedin.com/in/saksham--mittal' title='LinkedIn'>LinkedIn</a></p>
+</div>
+<form method="get" id="ddgSearch" action="https://duckduckgo.com/">
+    <input type="hidden" name="sites" value="gotlou.srht.site"/>
+    <input type="hidden" name="k7" value="#ffffff"/>
+    <input type="hidden" name="k8" value="#222222"/>
+    <input type="hidden" name="k9" value="#00278e"/>
+    <input type="hidden" name="kx" value="#20692b"/>
+    <input type="hidden" name="kj" value="#fafafa"/>
+    <input type="hidden" name="kt" value="p"/>
+    <input type="text" name="q" placeholder="Search this website.." aria-label="Search gotlou.srht.site on DuckDuckGo"/>
+    <button type="submit">Search</button>
+</form>
+<hr />
+<!-- HEAD END -->
+Added on: Sunday, 04 September, 2022 | Updated on: -
+<h1 id="phone-number-lookup-part-2">Phone Number Lookup (Part 2)</h1>
+<h2 id="embracing-laziness-and-saving-numbers-in-bulk">Embracing Laziness and Saving Numbers in Bulk</h2>
+<p>In the <a href="phone-num-lookup.html">last blog post</a>, we discussed the basic principle behind how we can use the UPI system to build a somewhat accurate but limited caller ID system that can be more privacy friendly as compared to mass data collecting organizations like Truecaller, the advantages and disadvantages of such a system, and the release of a small <a href="https://git.sr.ht/~gotlou/phone_nums_lookup_cli">proof of concept tool</a> written in Bash to help demonstrate the technique.</p>
+<p>Today, I detail how I used such a system to solve a somewhat non-trivial problem: saving everyone’s phone numbers.</p>
+<h3 id="the-problem">The Problem</h3>
+<p>I am in a whole bunch of college groups, and sometimes people contact me, but I do not have their numbers saved. I am also a very lazy person, so I forget to save people’s numbers as well. This has been an annoying problem for me, and rather than just go through my call logs and save the numbers of people I am most frequently in contact with, I decided to spend some time building a tool that would just save the numbers of mostly everyone I <em>could possibly</em> be in contact with.</p>
+<p><em>Hey, it was worth it according to <a href="https://xkcd.com/1205/">xkcd</a>!</em></p>
+<h3 id="the-solution">The Solution</h3>
+<p>I had opened up WhatsApp Web and used the “Inspect Element” feature to grab a list of all the phone numbers in a group. This will likely change as WhatsApp does not like unofficial, third party code interfacing with its systems, so I did not automate this.</p>
+<p>All these numbers were saved to a good old text file, from where I ran it through the Unix <code>sort</code> utility to get rid of duplicated numbers. After all this, I had ~500 phone numbers to search for.</p>
+<p>After this, it was time to build a small CLI that would iterate through every number and search for it. If it found a match, it would store it in a map, and after all searches are complete, would write it to a vCard file (.vcf) which would be imported into a phone’s contact app, thereby getting access to most of the phone numbers.</p>
+<p>I chose Go to write the CLI in as it was an easy, fast language with good concurrency support. I also wanted to practice writing more Go code and to make use of goroutines.</p>
+<h3 id="unexpected-hurdles">Unexpected hurdles</h3>
+<p>However, after writing the code to make concurrent requests, I would get ratelimited after just 2 or 3 requests. This was surprising since I had made many, many more requests using the proof of concept and never faced the issue.</p>
+<p>I removed the concurrency code entirely and just made requests sequentially (with a 500ms waiting period to boot) and the problem went away. I suspect I was making requests way too fast.</p>
+<p>Another problem I faced was that map writes can’t really be concurrent, so I had to create a channel and then push results there. This wasn’t ideal because I couldn’t easily check if a match had already been found for a phone number. Hence I made all the code sequential. Perhaps if I utilized one of the many libraries out there for ratelimiting network requests, I could speed up the program, but this can be a topic for future research.</p>
+<h3 id="conclusion">Conclusion</h3>
+<p>After letting the program run its course, I ended up with a VCF file that wasn’t entirely up to spec, so had to tweak the VCF generating function (<code>writeResultsToVCF()</code>) a bit. Luckily I had been printing each result to standard output when I was building the tool and redirecting it to a text file just in case something went wrong, so I wrote a function to basically recreate the map from this file (<code>getBulkLookupResults()</code>) and pass it to the VCF writing function as if nothing had gone wrong.</p>
+<p>I now have ~70% of the phone numbers associated with a name. This is just from two VPAs (PayTM and PhonePe). The success rate from such a small sample space is quite encouraging, and I have avoided adding more VPA suffices to search from because of this.</p>
+<p>And all this just to avoid saving some phone numbers…..</p>
+<p>That’s all for today! Bye for now!</p>
+<!-- FOOT START -->
+<hr />
+<p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and footers (including this one) to any document that’s published here.</p>
+<p>Copyright © 2022 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a></p>
+</html>
