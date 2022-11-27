@@ -1,0 +1,92 @@
+<html>
+<head>
+	<link rel='stylesheet' type='text/css' href='styles/style.css'>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>File Sharing, Unreliability, and NAT Traversal - Nonchalant Guidance</title>
+</head>
+<div align='center'>
+<h1><a href="index.html">Nonchalant Guidance</a></h1>
+<p><a href='aboutme.html'>About Me</a>·<a href='comingsoon.html' title='coming soon!'>RSS</a>·<a href="https://sr.ht/~gotlou">My Projects</a>·<a href='https://linkedin.com/in/saksham--mittal' title='LinkedIn'>LinkedIn</a></p>
+</div>
+<form method="get" id="ddgSearch" action="https://duckduckgo.com/">
+    <input type="hidden" name="sites" value="gotlou.srht.site"/>
+    <input type="hidden" name="k7" value="#ffffff"/>
+    <input type="hidden" name="k8" value="#222222"/>
+    <input type="hidden" name="k9" value="#00278e"/>
+    <input type="hidden" name="kx" value="#20692b"/>
+    <input type="hidden" name="kj" value="#fafafa"/>
+    <input type="hidden" name="kt" value="p"/>
+    <input type="text" name="q" placeholder="Search this website.." aria-label="Search gotlou.srht.site on DuckDuckGo"/>
+    <button type="submit">Search</button>
+</form>
+<hr />
+<!-- HEAD END -->
+Added on: Sunday, 27 November, 2022 | Updated on: -
+<h1 id="file-sharing-unreliability-and-nat-traversal">File Sharing, Unreliability, and NAT Traversal</h1>
+<h2 id="part-1">Part 1</h2>
+<p>I started using Tailscale, and was amazed at how it was able to make connections directly to my devices on different networks, even behind Carrier Grade NAT on mobile data. (You can read more about Tailscale <a href="https://gotlou.srht.site/tailscale.html">here</a>)</p>
+<p>The NAT traversal tech Tailscale uses is pretty nifty, and I was interested in using their techniques to solve more problems.</p>
+<p>For example, file sharing! File sharing is such a hard problem, especially with the size of the photos and videos we take. While messaging apps like Signal do allow sharing of such files, there are always size constraints on them, and for photos and videos, there is also compression to contend with. Compressed photos do not look nearly as good for archiving purposes, and just plain viewing!</p>
+<p>Services like Google Drive are good, but not as private. You reveal to Google not only the file(s) you want to share (unless you encrypt them before uploading), but also have to consent to automatic scanning of pictures for illegal materials. You could encrypt the files and then upload, but that’s not nearly as seamless as using a messaging app to send compressed versions. So, what do we do?</p>
+<p>It’s kind of fair: we’re consuming a third-party’s network bandwidth and disk space to do our work. There are bound to be some compromises. But, on the other hand, we have some really impressive network speeds right at home, and often times the only real time it’s strained is video (or game) streaming. How’s about we change that and use just our resources to transfer our files?</p>
+<p>Note: Tailscale also has a file transfer tool built into it’s clients. However, what’s the fun in using that? Also, for casual/impromptu sharing of files, this isn’t exactly ideal since you’d need to invite the other party’s devices on your network as well.</p>
+<h3 id="how-nat-traversal-works">How NAT Traversal works</h3>
+<p><a href="https://tailscale.com/blog/how-nat-traversal-works/">This</a> is an excellent article from Tailscale’s own blog where they explain the various tricks they use (and don’t use) which allows us to make direct connections.</p>
+<p>The most basic idea is this:</p>
+<p>Firewalls between you and your destination typically only trust connections from you. You have to initiate connections in order for the firewall to go, “Ah, since you want to go to this destination, I’ll trust it and allow packets from that destination to you from now on”.</p>
+<p>However, if both source and destination are behind NAT, that means:</p>
+<ol type="1">
+<li><p>They don’t know what they actually look like on the public Internet. They only know their local network IP address and port, which is next to useless for connections over the Internet</p></li>
+<li><p>They don’t know what the other party looks like on the public Internet, so there’s no way (for now) that they can even begin to communicate</p></li>
+<li><p>The other party likely doesn’t have an open port for them to connect to. The port, for them, will only open when the other party knows their external IP and port.</p></li>
+</ol>
+<p>So how do we solve this?</p>
+<ol type="1">
+<li><p>Contact a STUN server, which is a glorified way of saying “Use the same socket you want to use for communicating with the other party to communicate first with a server on the Internet which tells you what your public IP and port is”</p></li>
+<li><p>This can be solved in a myriad of ways, from basically typing the IP and port into the server as well (for testing purposes, or if you just want 1:1 communication), to having a “control plane”, as Tailscale calls it, which is just a small server that passes such small messages between machines. While this <em>is</em> centralized, it doesn’t carry much info and is pretty cheap compared to the cost of communicating entirely through a relay (especially if you’re running a file sharing service).</p></li>
+<li><p>This is where we exploit a loophole.</p></li>
+</ol>
+<p>Note from before, the firewalls trust incoming connections from other parties only if they have seen you contact them first. So, why not just “contact” them? Sure, the message probably won’t go through to the other party (what with <em>their</em> firewall blocking you), but it only has to reach your firewall for it to go, “OK, so we’re trusting this outgoing IP. I’ll allow incoming connections from it to you.” At the same time, have the other party do this for you, and after a few short moments, both parties (behind NAT) can now communicate directly with each other!</p>
+<h3 id="the-plan">The plan</h3>
+<p>NAT traversal typically involves using UDP sockets to negotiate a connection. This is because TCP itself adds a layer of complexity to an already complicated procedure, and certain capabilities are not possible without kernel modifications.</p>
+<p>So, we’ll need to write our own mini-TCP replacement on top of UDP in order to reliably pass not just a file, but related metadata, like the size of the file as a way to confirm that a user really <em>does</em> want to download a file,or (in the future) a public key that serves both as a unique identification for a user and a way to secure the connection so no one knows what file you’re sending.</p>
+<p>This is also the perfect project for me to help learn Rust, as it is a low-level, high-performance application that should also be safe as possible to use due to its sensitive nature.</p>
+<p>While I had thought of working on the NAT traversal and file sharing aspects of the project separately, I eventually decided to start working on file sharing first and then build the protocol (including NAT traversal) around it. I did it this was as I needed some time to get used to Rust and how to get around the borrow checker.</p>
+<p>At the end of this exercise I just wanted a proof of concept: something that would actually do the least complicated version of what I want to achieve and set the groundwork for solving a more complicated problem.</p>
+<h3 id="basic-file-transfer">Basic File Transfer</h3>
+<p>Building a basic file transfer protocol was a bit harder than I had thought it would be. Right now, my unnamed file transfer protocol is just a straight rip off of <a href="https://en.wikipedia.org/wiki/Trivial_File_Transfer_Protocol">TFTP</a>: send the file in appropriate packets, wait for an ACK and re transmit if you never get the ACK. There are some differences, such as adding some checking for authorization (which will help out when encryption support is added), sending file size in order to truly confirm the user wants the file, and a slightly more complicated data transfer scheme which goes like this:</p>
+<ul>
+<li><p>Client sends a request to get data from offset X</p></li>
+<li><p>Server responds by getting data from offset X to X + DATA_SIZE or till the end of the file, whichever is smaller.</p></li>
+<li><p>Client sends ACK for the same, increments X by however much data it had received, and requests the next chunk of the file if necessary.</p></li>
+</ul>
+<p>This seems slow for a number of reasons:</p>
+<ul>
+<li><p>It is still sequential even if we do have some concurrent requests going on</p></li>
+<li><p>Too many round trips: just get rid of the ACK for the packet we receive and directly ask for the next chunk or send a resend request</p></li>
+</ul>
+<p>I’ll need to work on this in order to get better throughput for the program.</p>
+<h3 id="nat-traversal-integration">NAT traversal integration</h3>
+<p>After I had gotten some level of file transfer capability integrated, I just added a step before the file transfer would be initiated to just blindly have both parties send packets to each other and <em>hope</em> that they had also gotten the message. There is no reliability check here other than just relying on dumb luck that out of maybe 5 packets, at least one could make it to the other party. A time delay of 5 seconds is added both before and after this little procedure in order to sync the entire thing together.</p>
+<p>At first, my file transfer protocol seemed to work over the Internet almost perfectly for small files. It was upon sending bigger files (even a couple of megabytes would do the trick) where I would see the protocol never recovering from lost packets. In fact the rudimentary protocol I had arrived at in the previous section was the result of a whole bunch of experimentation and research <em>after</em> integrating NAT traversal, as there really is no better way to test reliability than routing all my requests through a massive, busy network full of a huge volume of packets being routed to wherever they need to get to.</p>
+<p>This proved to be the correct strategy, and would prove to be the final test I would put every iteration of my protocol through.</p>
+<h3 id="the-current-state">The Current State</h3>
+<p>There are several limitations with the current code:</p>
+<ul>
+<li><p>Only one file can be transmitted at a time.</p></li>
+<li><p>No real concept of directories exists either.</p></li>
+<li><p>The file to be transmitted is loaded completely into RAM before being transmitted. Now, for images and some videos that is tolerable, but what about very big files, like ZIP archives of photo albums from many years? We can’t just expect to load all that into RAM, and it is also not great for performance on low-end machines and mobile devices. Something needs to be changed to avoid such a costly maneuver to be required, such as utilizing <code>mmap()</code> to address content on disk as if it were just in RAM, though this may come with performance penalties. This can also be done on client side to <em>write</em> the file to disk as well, as right now the file is assembled in RAM and then written to disk after being received in its entirety.</p></li>
+<li><p>Only one client is really supported by the server since there exists no way to initiate a connection to another client by server right now. This is planned to be fixed by building a small control plane which will just use TCP to communicate with both clients and servers and help them connect to each other. This is the only machine which will need to be on the public Internet, and so will cost extra resources to run. So, for now, this is on a backburner in order to get the rest of the problems solved.</p></li>
+<li><p>No encryption. In this day and age this makes it a deal-breaker for actual production usage, and must be rectified in order for other people to actually derive value from the project. Also, no authorization control really exists; I have just added a dummy value for the AUTH field for testing purposes.</p></li>
+<li><p>Slow transfer speed, even with very little lost packets. The throughput is just very low, and the program still feels like it is making requests sequentially. I will need to investigate further and eliminate more bottlenecks to really saturate the network link.</p></li>
+</ul>
+<p>At this moment, I have a CLI program that asks for the client/server IP:port upon launch, attempts to trick the stateful firewalls to allow a direct connection, and then initiates a file transfer. Truly the most minimal version of my problem is solved, and it lays the groundwork for the journey ahead.</p>
+<p>Still a long ways to go to solve this problem, but I do have a couple ideas as to how I can do it.</p>
+<p>You can check out the code <a href="https://git.sr.ht/~gotlou/p2p-file-transfer">here</a>. For future allied projects under this common goal, check out <a href="https://sr.ht/~gotlou/peer2peer/">this link</a></p>
+<p>That’s all for today! Bye now!</p>
+<!-- FOOT START -->
+<hr />
+<p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and footers (including this one) to any document that’s published here.</p>
+<p>Copyright © 2022 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a></p>
+</html>
