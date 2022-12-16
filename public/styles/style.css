@@ -20,6 +20,31 @@ body {
 	margin: calc(1em + 2.5vw);
 }
 
+input {
+  background-color: #222222;
+  color: #bababa;
+  border: 0px;
+}
+
+input:focus {
+  outline: none;
+}
+
+button {
+  background-color: #222222;
+  color: #bababa;
+  border: 0px;
+}
+
+input:hover,
+input:focus,
+button:focus,
+button:hover {
+  background-color: #000000;
+  animation-name: emphasize;
+	animation-duration: 1s;
+}
+
 h1 {
 	color: #eaeaea;
 	text-align: center;
