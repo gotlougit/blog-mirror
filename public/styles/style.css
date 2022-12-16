@@ -1,12 +1,22 @@
+@font-face {
+  font-family: 'RedHatMono';
+  src: url('static/RedHatMono-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 html {
 	scrollbar-width: thin;
+  overflow-y: scroll;
+  scrollbar-color: #222222 #bababa;
+  scrollbar-width: thin;
 }
 
 body {
 	background-color: #222222;
 	color:#bababa;
 	font-size: calc(1em + 0.25vw);
-	font-family: monospace;
+	font-family: RedHatMono;
 	margin: calc(1em + 2.5vw);
 }
 
@@ -29,7 +39,7 @@ a:hover {
 	from {
 		background-color: #222222;
 
-	} 
+	}
 	50% {
 		background-color: #111111;
 	}
