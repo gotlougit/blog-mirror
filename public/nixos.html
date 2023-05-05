@@ -1,0 +1,237 @@
+<html>
+<head>
+	<link rel='stylesheet' type='text/css' href='styles/style.css'>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Migrating to NixOS - Nonchalant Guidance</title>
+</head>
+<div align='center'>
+<h1><a href="index.html">Nonchalant Guidance</a></h1>
+<p><a href='aboutme.html'>About Me</a>·<a href='comingsoon.html' title='coming soon!'>RSS</a>·<a href="https://sr.ht/~gotlou">My Projects</a>·<a href='https://linkedin.com/in/saksham--mittal' title='LinkedIn'>LinkedIn</a></p>
+</div>
+<form method="get" id="ddgSearch" action="https://duckduckgo.com/">
+    <input type="hidden" name="sites" value="gotlou.srht.site"/>
+    <input type="hidden" name="k7" value="#ffffff"/>
+    <input type="hidden" name="k8" value="#222222"/>
+    <input type="hidden" name="k9" value="#00278e"/>
+    <input type="hidden" name="kx" value="#20692b"/>
+    <input type="hidden" name="kj" value="#fafafa"/>
+    <input type="hidden" name="kt" value="p"/>
+    <input type="text" name="q" placeholder="Search this website.." aria-label="Search gotlou.srht.site on DuckDuckGo"/>
+    <button type="submit">Search</button>
+</form>
+<hr />
+<!-- HEAD END -->
+Added on: Friday, 05 May, 2023 | Updated on: -
+<h1 id="migrating-to-nixos">Migrating to NixOS</h1>
+<p>I’ve been running Fedora for the past 2 years, and while I think that
+of the mainstream distros, it is the most beginner-friendly and stable
+system to run, I have been running into some pains while using it. I
+realized that I have been suffering from configuration drift, which is
+basically when you fix some issue by configuring it so in some obscure,
+easy-to-forget configuration file in <code>/etc/</code> or even some
+config file in <code>~/.config/</code>, and when you reinstall your
+system, you have to do this all over again.</p>
+<p>I’ve also been experimenting a lot with system defaults, and when I
+get stuff wrong it can also leave my system in a broken state for a
+while which is not ideal for situations when I need stuff to work and
+don’t have time to debug.</p>
+<p>To solve this, I have migrated to <a
+href="https://nixos.org">NixOS</a>.</p>
+<h3 id="what-is-nixos">What is NixOS?</h3>
+<p>NixOS is a Linux distro with a very, very unique philosophy: having a
+purely functional language (called Nix) be the lanugage in which you
+write all about your Linux system: your hardware (ie, what kernel
+modules and options you want), your software (everything from the
+bootloader to even the plugins inside your browser), and all their
+configuration options. You can:</p>
+<ul>
+<li><p>Write <code>systemd</code> services</p></li>
+<li><p>Add allowed SSH keys</p></li>
+<li><p>Create build instructions for software</p></li>
+<li><p><a href="https://grahamc.com/blog/erase-your-darlings/">Erase
+your entire system and regenerate your system from scratch on
+boot</a></p></li>
+<li><p>And more!</p></li>
+</ul>
+<p>NixOS seemed like an ideal way to manage my configs, both user and
+system-wide.</p>
+<h3 id="pre-install">Pre-Install</h3>
+<p>First, I downloaded NixOS and tried to create an automated installer
+that would automatically partition my system and install NixOS with a
+custom <code>configuration.nix</code> that I ended up workshopping for a
+couple of days. (This file, by the way, basically houses all the
+system-wide configurations that NixOS uses to build the system, like
+what bootloader you want, what drives and partitions you have, the users
+you want premade on the system, user packages you want installed for
+that user, system services you want running, and so on and so forth)</p>
+<p>The customizations I’ve done include:</p>
+<ul>
+<li>Use dnscrypt-proxy2 instead of systemd-resolved for DNS resolving.
+This way, I can use DNS over HTTPS instead of DNS over TLS, which is
+less likely to be blocked and allows me to make DNS requests in a secure
+fashion in more situations.</li>
+</ul>
+<p>By default my config uses Cloudflare’s 1.1.1.1 DNS resolver, which
+will most likely not be blocked by good networks and is private enough
+for my uses.</p>
+<ul>
+<li><p>Use systemd-boot instead of GRUB for bootloader. This is just to
+try out something new, and since I hardly ever mess with bootloaders, I
+don’t really care either way for this preference.</p></li>
+<li><p>Download various command line utilities and graphical
+applications which I use. This includes compilers, LSPs, browsers, music
+players etc. In this way, I can keep track of everything on my system at
+all times and not have to resort to parse DNF transaction history every
+time I wish to do a clean install. It also allows me to delete any
+packages that I feel are a waste of space easily.</p></li>
+</ul>
+<p>This is the section of the config that is most in flux, since I
+didn’t get all the packages that I use written down in one go. So, I’ve
+been adding to the list ever since depending on my need.</p>
+<ul>
+<li>Use zstd compression on BTRFS partition for easy space savings. zstd
+feels like it breaks the laws of physics sometimes, it achieves very
+good compression rates but takes negligible CPU cycles to decompress
+when the time comes to access the file.</li>
+</ul>
+<p>I did debate using ZFS since NixOS’s unique nature would make it one
+of the easiest distros to use ZFS, but ultimately went with BTRFS since
+I felt there wasn’t really too much difference either way for a single
+disk, no RAID system and I already had an external hard drive formatted
+with BTRFS.</p>
+<ul>
+<li><p>PipeWire and Wireplumber for audio.</p></li>
+<li><p>Syncthing for easy file sync between devices and as a kind of
+backup for irreplaceable files.</p></li>
+</ul>
+<p>Note: NixOS is all about reproducibility. However, that traditionally
+only extended to packages, not their versions etc. If you use my
+<code>configuration.nix</code> at two different times, you will most
+likely get different builds because the packages’ versions will be
+slightly different. Flakes allow you to “pin” the version numbers in a
+way, enabling true reproducibility. They’re also used in other
+utilities, like home-manager, which we’ll get to shortly. I don’t have
+my config migrated to flakes right now, but I will soon!</p>
+<p>In the meantime, I also used <code>rsync</code> to backup my home
+folder to an external hard drive in order to keep my user configs (or at
+least, the ones I cared about) and data. (I tried using
+<code>btrfs send/receive</code> but I was running into some problems and
+I already had an <code>rsync</code>-based backup script)</p>
+<p>The installer was jointly created by ChatGPT and tweaks from looking
+at blogs on NixOS, as well as the small customizations I made myself.
+However, it would never work. (My best guess is that I was using the
+wrong mountpoint for my EFI partition, but I was on a deadline to
+install NixOS due to other committments so I never tested this)</p>
+<p>I wound up using the default installer that came with the KDE image
+of NixOS and pasting my configuration in the now live system. This time
+it worked, although I did have to workshop a couple things as well,
+including shifting to NixOS unstable by changing channels.</p>
+<h3 id="home-manager">Home-Manager</h3>
+<p>Now that we have packages setup in a reproducible way, let’s do the
+same for config files. This was much harder than I expected.</p>
+<p>First, we setup <a
+href="https://nixos.wiki/wiki/Home_Manager">Home-Manager</a>, which is a
+tool to manage the home folder configs. It allows you to specify user
+packages, write config files directly in a .nix file, and also point to
+read-only versions of configs for certain programs (like, say, Git).</p>
+<p>Doing so is very easy. For example,</p>
+<pre><code>home.file = {
+    &quot;.config/gh&quot; = {
+      source = /home/gotlou/dotfiles/gh;
+      recursive = true;
+    };
+}</code></pre>
+<p>tells home-manager to create a read-only symlink at
+<code>~/.config/gh</code> to <code>~/dotfiles/gh</code> and have it do
+the same recursively (ie, for every subfolder and file within
+<code>~/dotfiles/gh</code>).</p>
+<p>I used <a href="https://nixos.wiki/wiki/Impermanence">Impermanence’s
+list of files</a> as well as casually glancing through my old
+<code>~/</code> for config files that seemed important, and added them
+to home-manager sequentially.</p>
+<h4 id="syncthing">Syncthing</h4>
+<p>There was a small hiccup with Syncthing that bears mention. I just
+copied over the Syncthing config, which includes the database and the
+private key used for identification and authentication, but syncthing
+wouldn’t start.</p>
+<p>In order to get it to work, you need to force Syncthing to rescan the
+files using the command <code>syncthing --reset-database</code>. Don’t
+worry, this won’t lose any data, but it will just “clean up” Syncthing a
+bit and it should work now.</p>
+<h3 id="future-work">Future work</h3>
+<p>Okay, so my time ran out to install NixOS. I had to get everything
+running under a busy weekend with other places to be and things to do,
+and this was the most I could do. Pretty good, all things
+considered.</p>
+<p>I plan to get read-write permissions on the dotfiles using
+Impermanence (mentioned above) and Erase Your Darlings, which is just
+the nickname I give to erasing your entire system, save for a couple of
+folders, and rebuilding system at boot. I could also mount / on tmpfs, I
+expect it won’t eat much RAM since it is ultimately a bunch of text and
+some symlinks to stuff stored on the SSD, but I’ll have to investigate
+this a bit further</p>
+<p>In this way, I will end up with a system whose entire configuration
+is defined in the contents stored in one single folder, my home folder
+will basically just contain personal files and dotfiles won’t really be
+stored in there, and one or two config files will contain the details
+about my system (services, users, packages etc)</p>
+<h3 id="conclusion">Conclusion</h3>
+<p>I really really like NixOS, even if I haven’t set it up yet
+completely.</p>
+<ul>
+<li><p>It feels faster than my old Fedora install. Boot times are lower
+and program startup speed is higher too. Maybe this is “new computer
+smell” at work, but if I implement Erase Your Darlings I can pretty much
+ensure this</p></li>
+<li><p>The fact that I can boot into an older generation if nothing
+works on the latest update gives me immense peace of mind. The
+declarative nature of the config file means I can very easily experiment
+with new tech stacks on my system (like swapping out DNS resolvers)
+without really having to be in the following situation:</p></li>
+</ul>
+<blockquote>
+<p>“OK, did I disable that old service? Does NetworkManager know about
+it? Is it still being run in memory? Why is my machine not booting
+now?”</p>
+</blockquote>
+<ul>
+<li><p><code>nix-shell</code> allows you to specify libraries that you
+wish to use in your current shell. Basically, it is Python virtual
+environment but done better and for the entire shell. I use it to manage
+libraries needed by various Rust projects for example.</p></li>
+<li><p><code>nix-shell -p package</code> allows you to get
+<code>package</code> temporarily installed in that shell only so you can
+try it out and use it without altering your
+<code>configuration.nix</code>. The required files are cached in
+<code>/nix/store</code>, so you can later use them, but they are not
+made available to general usage. For that, use
+<code>nix-env -iA package</code>, although this defeats the purpose of
+NixOS since this change is not recorded in your
+<code>configuration.nix</code> or any similar files.</p></li>
+<li><p>Stuff “just works” right now on my machine. If I boot into a
+certain generation, I can be guaranteed that that generation will
+perform the same as it did yesterday, so if an update borks something, I
+can just boot into an older generation as a workaround and wait for a
+fix or fix it myself depending on the issue.</p></li>
+</ul>
+<p>I recommend playing with NixOS in a VM and building your config
+there, then installing it on real hardware and see the magic happen
+before your eyes: the same machine as in the VM, made using one or two
+files. Goodbye, tedious Linux install and setup time!</p>
+<p>If you want to view my configuration, you can check out the <a
+href="https://git.sr.ht/~gotlou/nix-config">repo</a> and a mirror on <a
+href="https://github.com/gotlougit/nix-config">GitHub</a>. I tried to
+lay it out very very easily, and there is even a script which automates
+getting the system config into the stock KDE system you get after using
+the KDE GUI installer.</p>
+<p>Thanks to <a href="https://github.com/maan2003">Manmeet Singh</a> and
+<a href="https://github.com/getpsyched">Priyanshu Tripathi</a> for also
+doing the switch with me! They helped me set up everything, get started
+with NixOS and helped avoid any pain points they had thanks to their
+experience in setting it up as well.</p>
+<!-- FOOT START -->
+<hr />
+<p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and footers (including this one) to any document that’s published here.</p>
+<p>Copyright © 2023 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a></p>
+</html>
