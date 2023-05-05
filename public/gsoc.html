@@ -1,0 +1,74 @@
+<html>
+<head>
+	<link rel='stylesheet' type='text/css' href='styles/style.css'>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Accepted into GSoC - Nonchalant Guidance</title>
+</head>
+<div align='center'>
+<h1><a href="index.html">Nonchalant Guidance</a></h1>
+<p><a href='aboutme.html'>About Me</a>·<a href='comingsoon.html' title='coming soon!'>RSS</a>·<a href="https://sr.ht/~gotlou">My Projects</a>·<a href='https://linkedin.com/in/saksham--mittal' title='LinkedIn'>LinkedIn</a></p>
+</div>
+<form method="get" id="ddgSearch" action="https://duckduckgo.com/">
+    <input type="hidden" name="sites" value="gotlou.srht.site"/>
+    <input type="hidden" name="k7" value="#ffffff"/>
+    <input type="hidden" name="k8" value="#222222"/>
+    <input type="hidden" name="k9" value="#00278e"/>
+    <input type="hidden" name="kx" value="#20692b"/>
+    <input type="hidden" name="kj" value="#fafafa"/>
+    <input type="hidden" name="kt" value="p"/>
+    <input type="text" name="q" placeholder="Search this website.." aria-label="Search gotlou.srht.site on DuckDuckGo"/>
+    <button type="submit">Search</button>
+</form>
+<hr />
+<!-- HEAD END -->
+Added on: Saturday, 06 May, 2023 | Updated on: -
+<h1 id="accepted-into-gsoc">Accepted into GSoC</h1>
+<p>This is just a quick blog post to announce I got selected into Google
+Summer of Code 2023!</p>
+<p>I will be working this summer under the Tor Project on the project
+“Arti API exploration to build example tools”.</p>
+<p>For more context, <a
+href="https://gitlab.torproject.org/tpo/core/arti">Arti</a> is the new
+Rust rewrite of the core Tor daemon (which is the software that creates
+the proxy through which you can route TCP connections over the Tor
+network to preserve your privacy). It is designed from the ground up to
+take advantage of Rust’s memory and thread safety, offering less memory
+safety issues at very little performance cost, if any.</p>
+<p>It is also designed so that other software projects may integrate
+Arti into their projects so that they can “Torify” their network
+requests as well without having to rely on an external daemon running or
+having to specify any settings as well.</p>
+<p>Currently, the Tor daemon (written in C) doesn’t have a nice way to
+do this since this kind of third-party integration was an afterthought,
+and since Tor has been around since 2002, the code isn’t as easy to
+understand as it once was.</p>
+<p>Now, even though work on Arti has been coming along nicely, there are
+still many features left to implement before it is ready to replace C
+Tor. Also, the code written thus far doesn’t have much in the way of
+examples illustrating to developers working on projects that may wish to
+use Arti how exactly to go about using these APIs.</p>
+<p>This is mainly what my Google Summer of Code project is aiming to
+solve.</p>
+<p>In the coming few months, I will be building several small utilities
+which will not only demonstrate Arti to other developers, but will also
+help new developers understand how Arti APIs are externally leveraged,
+use the API in novel ways which will most likely expose bugs or hidden
+gaps in functionality, and even be used in production to solve a
+non-trivial problem or two that may arise.</p>
+<p>As someone who has used Tor in many situations to get around
+pointless website blocks and even used the Tor Browser as their daily
+browser for web browsing and non-logged in tasks, I feel proud to
+contribute to such a project which will utlimately aid people to access
+information freely without the fear of oppressive third parties or
+vested interests.</p>
+<p>For more information, you can check out my proposal in <a
+href="https://docs.google.com/document/d/1cDz5AvJlZDW20xCXE6QmJEWXuNP_XXjnq01QlKxog28/edit?usp=sharing">Google
+Docs</a> or in <a href="gsoc-proposal.pdf">PDF format</a>.</p>
+<p>Thanks to Tor Project and Google for selecting me! I look forward to
+working this summer!</p>
+<!-- FOOT START -->
+<hr />
+<p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and footers (including this one) to any document that’s published here.</p>
+<p>Copyright © 2023 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a></p>
+</html>
