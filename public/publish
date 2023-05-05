@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+shopt -s expand_aliases # enable alias expansion
+alias blog-helper="python3 ~/Code/Python/blog-helper/src/main.py"
 echo Running blogpost checks...
 files=$(git ls-files --others --exclude-standard)
 
