@@ -1,0 +1,186 @@
+<html>
+<head>
+	<link rel='stylesheet' type='text/css' href='styles/style.css'>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Migrating to NixOS (Part 2) - Nonchalant Guidance</title>
+</head>
+<div align='center'>
+<h1><a href="index.html">Nonchalant Guidance</a></h1>
+<p><a href='aboutme.html'>About Me</a>·<a href='comingsoon.html' title='coming soon!'>RSS</a>·<a href="https://sr.ht/~gotlou">My Projects</a>·<a href='https://linkedin.com/in/saksham--mittal' title='LinkedIn'>LinkedIn</a></p>
+</div>
+<form method="get" id="ddgSearch" action="https://duckduckgo.com/">
+    <input type="hidden" name="sites" value="gotlou.srht.site"/>
+    <input type="hidden" name="k7" value="#ffffff"/>
+    <input type="hidden" name="k8" value="#222222"/>
+    <input type="hidden" name="k9" value="#00278e"/>
+    <input type="hidden" name="kx" value="#20692b"/>
+    <input type="hidden" name="kj" value="#fafafa"/>
+    <input type="hidden" name="kt" value="p"/>
+    <input type="text" name="q" placeholder="Search this website.." aria-label="Search gotlou.srht.site on DuckDuckGo"/>
+    <button type="submit">Search</button>
+</form>
+<hr />
+<!-- HEAD END -->
+Added on: Saturday, 27 May, 2023 | Updated on: -
+<h1 id="migrating-to-nixos-part-2">Migrating to NixOS (Part 2)</h1>
+<h2 id="erase-your-darlings">Erase Your Darlings</h2>
+<p>In the <a href="nixos.html">last post</a>, we covered how I ended up
+doing a NixOS installation to enable greater reproducibility of my
+system and packages. I hinted at my future plans to extend this
+reproducibility to implement “erase your darlings”, in which you
+explicitly define what files and directories you want saved and your
+entire system is reconstructed from scratch by NixOS using these saved
+files. Anything not in these specific folders and files is erased.</p>
+<p>There are many reasons why you’d want to do this:</p>
+<ul>
+<li><p>Avoid configuration drift: Instead of doing a super-important
+change in an obscure and hard-to-remember configuration file, this
+forces you to explicitly save that file in your NixOS configuration, or
+better, define that change in <code>configuration.nix</code></p></li>
+<li><p>Better reproducibility; by having a list of files required for
+boot, one could easily recreate the same install and quickly copy over
+Wi-Fi passwords, SSH keys, custom configs, VPN private keys,
+etc</p></li>
+<li><p>Why just /, erase /home too?: if you really want to take this to
+the extreme, you can do this for your user’s home folder as well,
+persisting their user configs as well</p></li>
+</ul>
+<h3 id="basic-setup">Basic Setup</h3>
+<p>Erase Your Darlings requires 2 things:</p>
+<ul>
+<li><p>A way to save and link saved files: for this we will use
+Impermanence</p></li>
+<li><p>A way to erase the system, saving only <code>/boot</code>,
+<code>/nix</code> (NixOS requires these two to be present to boot) and
+whatever directory you use to save your files in (I used
+<code>/persist</code>). The original post used ZFS snapshots, while a
+guide I followed used btrfs snapshots, but in the end the simplicity of
+mounting <code>/</code> to tmpfs (basically a filesystem in RAM, so it
+will never persist) was just too much to resist.</p></li>
+</ul>
+<h3 id="step-1-installation-and-prep">Step 1: Installation and Prep</h3>
+<p>I originally tried to implement these changes in my old install, but
+after some difficulties (ultimately my mistake to not have
+<code>/nix</code> be a btrfs subvolume killed this entire attempt), I
+opted to do a fresh install. This was also a blessing in disguise, since
+I found that certain packages I’d installed using <code>nix-env</code>
+were highlighted to me by their absense, so I added them into the
+config.</p>
+<p>I had to modify the installation a lot, and in the end I used the KDE
+live USB of NixOS to just do a manual install myself, bypassing the
+graphical Calamares installer.</p>
+<p>Roughly speaking, here are the steps to install:</p>
+<ul>
+<li><p>Create partitions</p></li>
+<li><p>Encrypt relevant partition(s)</p></li>
+<li><p>Mount those partitions</p></li>
+</ul>
+<p>I decided to do a similar setup to my old install: a
+<code>/boot/efi</code> mountpoint for ESP, and a LUKS volume with btrfs
+on top. I ended up fixing my old script in my <a
+href="https://git.sr.ht/~gotlou/nix-config">nix-config repo</a> (<a
+href="https://github.com/gotlougit/nix-config">GitHub mirror</a>) and
+using that to automate the install.</p>
+<p>The script also created the subvolumes required:
+<code>/nix, /home, /persist</code></p>
+<ul>
+<li>Copy over configuration.nix</li>
+</ul>
+<p>I first checked <code>hardware-configuration.nix</code> to see what
+the setup is. To my delight, the subvolumes I’d created had been picked
+up by NixOS, so all I really had to do was tell NixOS to mount
+<code>/</code> on tmpfs:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode nix"><code class="sourceCode nix"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>  fileSystems.<span class="st">&quot;/&quot;</span> =</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span> <span class="va">device</span> <span class="op">=</span> <span class="st">&quot;none&quot;</span><span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>      <span class="va">fsType</span> <span class="op">=</span> <span class="st">&quot;tmpfs&quot;</span><span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>      <span class="va">options</span> <span class="op">=</span> <span class="op">[</span> <span class="st">&quot;defaults&quot;</span> <span class="st">&quot;size=1G&quot;</span> <span class="st">&quot;mode=755&quot;</span> <span class="op">];</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span>;</span></code></pre></div>
+<p>Note: if you’re worried that I am just losing 1 GB RAM to
+<code>/</code>, don’t. The 1G size is a limit on the size, and is not
+kept reserved explicity for tmpfs. So, that means that I have only ever
+used at most 150MB of RAM mounting <code>/</code> to tmpfs, and that was
+after I’d left my machine on for 3-4 days. A fresh boot brings that
+number down to low double digits.</p>
+<p>The subvolumes are mounted as follows:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode nix"><code class="sourceCode nix"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  fileSystems.<span class="st">&quot;/home&quot;</span> =</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span> <span class="va">device</span> <span class="op">=</span> <span class="st">&quot;/dev/mapper/cryptroot&quot;</span><span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>      <span class="va">fsType</span> <span class="op">=</span> <span class="st">&quot;btrfs&quot;</span><span class="op">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>      <span class="va">options</span> <span class="op">=</span> <span class="op">[</span> <span class="st">&quot;compress=zstd&quot;</span> <span class="st">&quot;noatime&quot;</span> <span class="st">&quot;subvol=home&quot;</span> <span class="op">];</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span>;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  fileSystems.<span class="st">&quot;/nix&quot;</span> =</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span> <span class="va">device</span> <span class="op">=</span> <span class="st">&quot;/dev/mapper/cryptroot&quot;</span><span class="op">;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>      <span class="va">fsType</span> <span class="op">=</span> <span class="st">&quot;btrfs&quot;</span><span class="op">;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>      <span class="va">options</span> <span class="op">=</span> <span class="op">[</span> <span class="st">&quot;compress=zstd&quot;</span> <span class="st">&quot;noatime&quot;</span> <span class="st">&quot;subvol=nix&quot;</span> <span class="op">];</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span>;</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  fileSystems.<span class="st">&quot;/persist&quot;</span> =</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span> <span class="va">device</span> <span class="op">=</span> <span class="st">&quot;/dev/mapper/cryptroot&quot;</span><span class="op">;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>      <span class="va">fsType</span> <span class="op">=</span> <span class="st">&quot;btrfs&quot;</span><span class="op">;</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>      <span class="va">options</span> <span class="op">=</span> <span class="op">[</span> <span class="st">&quot;compress=zstd&quot;</span> <span class="st">&quot;noatime&quot;</span> <span class="st">&quot;subvol=persist&quot;</span> <span class="op">];</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>      <span class="va">neededForBoot</span> <span class="op">=</span> <span class="cn">true</span><span class="op">;</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span>;</span></code></pre></div>
+<p>Note that it also detected the device name I’d set for the LUKS
+partition in my shell script. Yay!</p>
+<ul>
+<li>Run <code>nixos-install</code></li>
+</ul>
+<p>This was the most time consuming process since it downloaded
+everything defined in my config, which had by then become quite
+sizeable.</p>
+<ul>
+<li>Reboot and pray it works</li>
+</ul>
+<h3 id="impermanence">Impermanence</h3>
+<p>After booting in and verifiying everything worked, my attention now
+turned to persisting relevant data.</p>
+<p>The <a href="https://nixos.wiki/wiki/Impermanence">NixOS wiki page on
+Impermanence</a> has a good starting point for this. I ended up
+following its advice at first and specialized which folders I wanted to
+save later down the line based on what programs I was using that needed
+that persistence.</p>
+<p>I don’t have much Impermanence code for my home directory, and opted
+to remove home-manager entirely. I didn’t really like how it worked
+(read-only linking), and Impermanence would do the job better. I only
+link a couple important folders and configs for now, but plan on
+expanding this number.</p>
+<h3 id="quirks">Quirks</h3>
+<ul>
+<li><p>Home-Manager didn’t seem to work after I copied over my backup. I
+tried reinstalling and a couple other steps, but it just wouldn’t take.
+Oh well, not a huge loss.</p></li>
+<li><p>The KDE display scaling always defaults to 125% when I login. I
+haven’t been able to track down what config in / is responsible for this
+(I don’t think it is /home because it would’ve persisted
+otherwise)</p></li>
+<li><p>/home is a mess. I would really like to separate out dotfiles and
+personal data (or at least just dotfiles), but because there are so many
+it will take me some time to do this.</p></li>
+</ul>
+<h3 id="conclusion">Conclusion</h3>
+<p>Erase Your Darlings and Impermanence haven’t really changed how I use
+my system, but they gotten me much closer to ensuring that if my machine
+burns down, my Internet connection and shipping speed will be the main
+bottlenecks in getting me back up and running again.</p>
+<p>Before NixOS, I could get personal data and user dotfiles restored.
+With my previous NixOS install, I could get programs installed again,
+With my latest install, I can also get some vital system configs
+back.</p>
+<p>This was also an opportunity to reset and rebuild. There are
+(ironically) some steps I’ve left out in this journey which I don’t
+remember (like Impermanence not persisting stuff in my home folder
+correctly, so I had to change permissions on that folder manually for my
+user as root) that will surface when I do another clean install. Till
+then, this is good enough for me, and the next time, I’ll test this
+entire stack by doing an install from scratch using my repo and see how
+close I get to reproducing the old system with as little manual work as
+possible.</p>
+<!-- FOOT START -->
+<hr />
+<p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and footers (including this one) to any document that’s published here.</p>
+<p>Copyright © 2023 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a></p>
+</html>
