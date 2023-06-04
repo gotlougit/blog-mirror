@@ -1,0 +1,214 @@
+<html>
+<head>
+	<link rel='stylesheet' type='text/css' href='styles/style.css'>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>GSoC 2023 Blog 1 - Nonchalant Guidance</title>
+</head>
+<div align='center'>
+<h1><a href="index.html">Nonchalant Guidance</a></h1>
+<p><a href='aboutme.html'>About Me</a>·<a href='comingsoon.html' title='coming soon!'>RSS</a>·<a href="https://sr.ht/~gotlou">My Projects</a>·<a href='https://linkedin.com/in/saksham--mittal' title='LinkedIn'>LinkedIn</a></p>
+</div>
+<form method="get" id="ddgSearch" action="https://duckduckgo.com/">
+    <input type="hidden" name="sites" value="gotlou.srht.site"/>
+    <input type="hidden" name="k7" value="#ffffff"/>
+    <input type="hidden" name="k8" value="#222222"/>
+    <input type="hidden" name="k9" value="#00278e"/>
+    <input type="hidden" name="kx" value="#20692b"/>
+    <input type="hidden" name="kj" value="#fafafa"/>
+    <input type="hidden" name="kt" value="p"/>
+    <input type="text" name="q" placeholder="Search this website.." aria-label="Search gotlou.srht.site on DuckDuckGo"/>
+    <button type="submit">Search</button>
+</form>
+<hr />
+<!-- HEAD END -->
+Added on: Sunday, 04 June, 2023 | Updated on: -
+<h1 id="gsoc-2023-blog-1">GSoC 2023 Blog 1</h1>
+<p>Hello there! This will be the first of many blogposts detailing the
+work I will be doing for the <a href="https://www.torproject.org">Tor
+Project</a> as part of Google Summer of Code 2023.</p>
+<p>Here I will detail some of the work I did during some period of time,
+the challenges I faced and the outcomes of that work.</p>
+<h2 id="brief-intro-on-my-project">Brief Intro on My Project</h2>
+<p>The project I was selected for is titled “Arti API exploration to
+build example tools”.</p>
+<p>Confused? Let’s break it down.</p>
+<ul>
+<li><p>Arti is the Rust rewrite of the Tor software that allows you to
+make TCP connections through the Tor Network, run Tor relays and bridges
+etc. You can read more about it <a
+href="https://gitlab.torproject.org/tpo/core/arti">from its
+repository</a></p></li>
+<li><p>Arti was built in mind with the goal that other developers should
+be able to use Arti to build Tor-powered software, and has incorporated
+that thinking into its design.</p></li>
+</ul>
+<p>So, it exports some crates that other developers can use in their
+Rust projects, and has some documentation on them, including some basic
+demonstration code snippets that you can follow along with at home.</p>
+<ul>
+<li><p>However, Arti is a fairly bleeding-edge project. It didn’t hit
+version 1.0.0 too long ago, and due to the breakneck speed of
+development, APIs are not set in stone. There is a lot of breakage that
+could be potentially encountered by another developer.</p></li>
+<li><p>In this project, I will be creating certain sample programs in
+Rust using Arti’s APIs</p></li>
+</ul>
+<p>My goal will be to build my sample programs and document any
+difficulties that come up.</p>
+<ul>
+<li>Maybe certain APIs are hard to use, or undocumented, or certain
+operations cause Arti to fail (exposing a bug). All these issues will be
+brought to the notice of the Arti team and fixes can be discussed and
+implemented.</li>
+</ul>
+<p>In this way, the project can get valuable feedback from an outsider
+who doesn’t have much knowledge of the codebase and the way the Arti
+proxy does things.</p>
+<h2 id="reorganizing-work-repository">Reorganizing work repository</h2>
+<p>A bit before the GSoC contributor applications opened up, I <a
+href="https://gitlab.torproject.org/gotlou/arti-sample-projects">created
+a repo</a> which housed my attempt at building something using
+<code>arti-client</code> and <code>arti-hyper</code>: A download manager
+which would download Tor Browser from the Tor Project website.</p>
+<p>Now, I only opened this up to play around with the existing APIs, but
+I’d actually found <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/issues/779">a
+bug</a> on my first day.</p>
+<p>I continued to hack on this project and even included it in my
+proposal, both to link to and to continue to work on in the GSoC work
+period.</p>
+<p>I have worked on the project for a bit and now it is able to create
+six different circuits through the Tor Network (so that means requests
+go through six different exit nodes) and download the Linux version of
+Tor Browser through Tor.</p>
+<p>Now that I have been selected, it would probably be a good idea to
+use this repo to house all my work for this summer, not just the
+download manager.</p>
+<p>To do this, I looked to the Arti repo for inspiration.</p>
+<p>Arti’s main repo houses all the crates that Arti needs or exports.
+The root directory of the repository has a <code>crates/</code> folder
+which has all the different crates in it.</p>
+<p>The <code>Cargo.toml</code> in the root directory is configured to
+create a cargo workspace, which means that it tells cargo that there are
+multiple crates inside this one repo.</p>
+<p>Once I added my projects inside the <code>crates</code> folder, I was
+able to declare which one I wanted to run using
+<code>cargo run --bin &lt;crate-name&gt;</code></p>
+<h2 id="making-connections-through-bridges">Making connections through
+bridges</h2>
+<p>At this point, the download manager was working well, and I wanted to
+further enhance it by working to add pluggable transport support to it.
+However, I was not too familiar with the APIs so I pivoted to working on
+one of the smaller projects in my proposal: a connection checker tool
+which just tries to connect to a website through Tor via a normal Tor
+connection, a bridge or obfs4 or Snowflake bridge.</p>
+<p>This tool was specifically chosen to be built by me in order to
+better gauge Arti’s bridge APIs, and while developing this tool I did
+find some useful feedback for the Arti devs.</p>
+<ul>
+<li><p>There wasn’t really any example code given to connect to a
+Snowflake proxy. I brought this to the attention of the Arti devs and <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/issues/875">filed an
+issue</a> since this wasn’t something I could’ve fixed myself. It is
+addressed in <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1216">this
+MR</a></p></li>
+<li><p>The example code I was using did not actually work, this was due
+to the process not getting an exclusive lock on the cache for the
+directory info that Arti can share with multiple instances. While normal
+Arti usage can share this cache info, when using bridges this falls
+apart and is <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/issues/611">a known
+bug</a>.</p></li>
+</ul>
+<p>Since there were some issues with getting bridges working, I shifted
+to something else.</p>
+<h2 id="making-error-reporting-easier-for-new-developers">Making error
+reporting easier for new developers</h2>
+<p>When reporting this issue over IRC, nickm suggested using
+<code>tor_error::Report</code> to generate an error message instead of
+copy pasting panic output or even the Display trait’s output</p>
+<p>This was the first I saw of this trait, and it took some delving into
+<code>tor-error</code>’s docs to figure out how to use it.</p>
+<p>Essentially, <code>tor_error::Report</code> implements the
+<code>report()</code> method, which generates a nice, easy to understand
+error message from the error that has been caught.</p>
+<p>So, instead of writing</p>
+<pre><code>function_which_fails().unwrap();</code></pre>
+<p>and looking at a complicated panic, you can write</p>
+<pre><code>match function_which_fails() {
+  Ok(_) =&gt; {
+    // some code here
+  },
+  Err(e) =&gt; {
+    println!(&quot;{}&quot;, e.report());
+  }
+}</code></pre>
+<p>Now knowing this trait was there for Arti’s APIs, it would’ve made
+debugging much easier. So, I created <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1213">an
+MR</a> to add a section on Error Reporting in the docs for
+<code>arti-client</code></p>
+<p>Now that this was done, I worked on another project under the
+proposal.</p>
+<h2 id="working-on-the-dns-resolver">Working on the DNS resolver</h2>
+<p>Since the download manager had gotten enough work for a while and the
+connection checker was stalled, I decided to work on the DNS resolver,
+which was a sample program I chose specifically to highlight how
+non-HTTP(S) TCP-based protocols might utilize Arti to make their
+connections anonymous.</p>
+<p>The DNS resolver will use DNS over TCP to make a query to a DNS
+server for a particular domain.</p>
+<p>I researched the protocol and found that DNS over TCP was virtually
+identical to regular UDP-based DNS.</p>
+<p><a
+href="https://mislove.org/teaching/cs4700/spring11/handouts/project1-primer.pdf">This
+teaching resource</a> helped me understand the DNS header and payload
+generation, and even provided some dummy values I could use to validate
+my DNS request.</p>
+<p>While at first I did directly send these bytes over Tor, at times I
+resorted to using <code>tokio::net::UdpSocket</code> or
+<code>tokio::net::TcpStream</code> in order to validate my crafted
+request. This was a good step, since Wireshark would reveal that my
+packet was not, in fact, valid.</p>
+<p>I’d first dropped down from Tor to TCP, but when even that didn’t
+really work I went down to UDP. It was here that Wireshark revealed that
+my packet was a mangled UDP packet.</p>
+<p>Apparently, some values weren’t set right, so after fixing that and
+verifiying in Wireshark, I went up to TCP. Here is where the statement
+“DNS over TCP was virtually identical to regular UDP-based DNS” falls
+apart.</p>
+<p>The only real differences I could see from my packet and what
+<code>dig</code> generates for DNS over TCP was the following:</p>
+<ul>
+<li><p>Two bytes being added before my DNS message starts:
+<code>0x00 0x33</code>. I just added these in using
+<code>.push()</code>.</p></li>
+<li><p>The entire TCP payload being of 53 bytes. The <code>dig</code>
+command accomplished this by making an additional request, but adding
+support for this seemed to be a bit beyond the objective of this
+project, so I (at first) <em>copied the bytes from Wireshark and
+appended them to the Vec I was sending over the network</em>. When this
+worked, I experimented and found if I simply sent a 53 byte packet, even
+I padded them with <code>0x00</code>, it would be recognized as a DNS
+packet.</p></li>
+</ul>
+<p>Now, I don’t really know why this happens. Keep in mind, I was
+sending the <em>same exact</em> payload over UDP and TCP, yet the
+previous iteration (without these hacks) only worked in UDP and not in
+TCP.</p>
+<p>So, after all this insanity, I have a custom DNS over TCP query
+function which will represent the query as a struct and then convert it
+to <code>Vec&lt;u8&gt;</code> (a vector of bytes) using
+<code>.as_bytes()</code> method (which is defined in
+<code>AsBytes</code> trait that is later implemented)</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>This week was just the start, and I’ve been learning something new
+almost every day. Here’s to more progress in the coming weeks and more
+improvements to Arti!</p>
+<!-- FOOT START -->
+<hr />
+<p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and footers (including this one) to any document that’s published here.</p>
+<p>Copyright © 2023 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a></p>
+</html>
