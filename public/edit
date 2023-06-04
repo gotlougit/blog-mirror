@@ -10,7 +10,7 @@ then
 		trash-rm $1
 		pandoc -o temp$1.md temp$1.html
 		rm temp$1.html
-		vi temp$1.md
+		$EDITOR temp$1.md
 		pandoc -o $1 temp$1.md
 		rm temp$1.md
 		#spell check
