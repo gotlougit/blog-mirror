@@ -22,7 +22,9 @@
 </form>
 <hr />
 <!-- HEAD END -->
-Added on: Sunday, 04 June, 2023 | Updated on: -
+
+<p>Added on: Sunday, 04 June, 2023 | Updated on: Sunday, 04 June, 2023
+2023</p>
 <h1 id="gsoc-2023-blog-1">GSoC 2023 Blog 1</h1>
 <p>Hello there! This will be the first of many blogposts detailing the
 work I will be doing for the <a href="https://www.torproject.org">Tor
@@ -167,7 +169,22 @@ href="https://mislove.org/teaching/cs4700/spring11/handouts/project1-primer.pdf"
 teaching resource</a> helped me understand the DNS header and payload
 generation, and even provided some dummy values I could use to validate
 my DNS request.</p>
-<p>While at first I did directly send these bytes over Tor, at times I
+<p>The first thing I did was write the structs according to the
+definitions given in the above teaching resource, which I
+cross-referenced across various other sources.</p>
+<p>After that, I resorted to looking for some crate which could directly
+serialize and deserialize the structs into <code>Vec&lt;u8&gt;</code>,
+however, after trying <code>serde</code> and <code>bincode</code> I
+realized that these crates all used their own bespoke format, and I’d
+have to just manually write the code to serialize and deserialize.</p>
+<p>In order to do that, I defined a trait <code>AsBytes</code> which has
+<code>as_bytes()</code> method to be implemented by both
+<code>Header</code> and <code>Query</code> structs (which represent the
+DNS header and query message respectively)</p>
+<p>After this was done and I was able to verify that the method worked
+as intended, I ran into another roadblock: I was getting a response of 0
+bytes every time.</p>
+<p>While at first I did directly send these bytes over Tor, I later
 resorted to using <code>tokio::net::UdpSocket</code> or
 <code>tokio::net::TcpStream</code> in order to validate my crafted
 request. This was a good step, since Wireshark would reveal that my
@@ -198,17 +215,18 @@ packet.</p></li>
 sending the <em>same exact</em> payload over UDP and TCP, yet the
 previous iteration (without these hacks) only worked in UDP and not in
 TCP.</p>
-<p>So, after all this insanity, I have a custom DNS over TCP query
-function which will represent the query as a struct and then convert it
-to <code>Vec&lt;u8&gt;</code> (a vector of bytes) using
-<code>.as_bytes()</code> method (which is defined in
-<code>AsBytes</code> trait that is later implemented)</p>
+<p>Now, even after doing this, I was able to see that even though my
+machine gets a response back, all that my Rust program saw was zeroes. I
+later figured out that by fixing the size of the buffer I used to store
+the response, I would get the response.</p>
 <h2 id="conclusion">Conclusion</h2>
 <p>This week was just the start, and I’ve been learning something new
 almost every day. Here’s to more progress in the coming weeks and more
 improvements to Arti!</p>
+
 <!-- FOOT START -->
 <hr />
 <p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and footers (including this one) to any document that’s published here.</p>
 <p>Copyright © 2023 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a></p>
 </html>
+
