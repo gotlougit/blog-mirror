@@ -1,0 +1,240 @@
+<html>
+<head>
+	<link rel='stylesheet' type='text/css' href='styles/style.css'>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>GSoC 2023 Blog 2 - Nonchalant Guidance</title>
+</head>
+<div align='center'>
+<h1><a href="index.html">Nonchalant Guidance</a></h1>
+<p><a href='aboutme.html'>About Me</a>·<a href='comingsoon.html' title='coming soon!'>RSS</a>·<a href="https://sr.ht/~gotlou">My Projects</a>·<a href='https://linkedin.com/in/saksham--mittal' title='LinkedIn'>LinkedIn</a></p>
+</div>
+<form method="get" id="ddgSearch" action="https://duckduckgo.com/">
+    <input type="hidden" name="sites" value="gotlou.srht.site"/>
+    <input type="hidden" name="k7" value="#ffffff"/>
+    <input type="hidden" name="k8" value="#222222"/>
+    <input type="hidden" name="k9" value="#00278e"/>
+    <input type="hidden" name="kx" value="#20692b"/>
+    <input type="hidden" name="kj" value="#fafafa"/>
+    <input type="hidden" name="kt" value="p"/>
+    <input type="text" name="q" placeholder="Search this website.." aria-label="Search gotlou.srht.site on DuckDuckGo"/>
+    <button type="submit">Search</button>
+</form>
+<hr />
+<!-- HEAD END -->
+Added on: Monday, 12 June, 2023 | Updated on: -
+<h1 id="gsoc-2023-blog-2">GSoC 2023 Blog 2</h1>
+<p>Hello there! This is the second in a series of blogposts detailing
+the work I will be doing for the <a
+href="https://www.torproject.org">Tor Project</a> as part of Google
+Summer of Code 2023.</p>
+<p>Here I will detail some of the work I did during some period of time,
+the challenges I faced and the outcomes of that work.</p>
+<h2 id="brief-intro-on-my-project">Brief Intro on My Project</h2>
+<p>The project I was selected for is titled “Arti API exploration to
+build example tools”.</p>
+<p>Confused? Let’s break it down.</p>
+<ul>
+<li><p>Arti is the Rust rewrite of the Tor software that allows you to
+make TCP connections through the Tor Network, run Tor relays and bridges
+etc. You can read more about it <a
+href="https://gitlab.torproject.org/tpo/core/arti">from its
+repository</a></p></li>
+<li><p>Arti was built in mind with the goal that other developers should
+be able to use Arti to build Tor-powered software, and has incorporated
+that thinking into its design.</p></li>
+</ul>
+<p>So, it exports some crates that other developers can use in their
+Rust projects, and has some documentation on them, including some basic
+demonstration code snippets that you can follow along with at home.</p>
+<ul>
+<li><p>However, Arti is a fairly bleeding-edge project. It didn’t hit
+version 1.0.0 too long ago, and due to the breakneck speed of
+development, APIs are not set in stone. There is a lot of breakage that
+could be potentially encountered by another developer.</p></li>
+<li><p>In this project, I will be creating certain sample programs in
+Rust using Arti’s APIs</p></li>
+</ul>
+<p>My goal will be to build my sample programs and document any
+difficulties that come up.</p>
+<ul>
+<li>Maybe certain APIs are hard to use, or undocumented, or certain
+operations cause Arti to fail (exposing a bug). All these issues will be
+brought to the notice of the Arti team and fixes can be discussed and
+implemented.</li>
+</ul>
+<p>In this way, the project can get valuable feedback from an outsider
+who doesn’t have much knowledge of the codebase and the way the Arti
+proxy does things.</p>
+<h2 id="fixing-dns-client">Fixing DNS client</h2>
+<p>In the <a href="gsoc-week-1.html">last post</a>, I detailed how I got
+a functioning DNS packet to be crafted with the help of Wireshark and a
+teaching resource I found.</p>
+<p>This time, I wanted to understand the meanings behind the “magic
+numbers” I was sending. For this, <a
+href="https://gitlab.torproject.org/Diziet">Ian Jackson</a> suggested I
+read <a href="https://datatracker.ietf.org/doc/html/rfc1035">RFC
+1035</a>, all the way from 1987, which lays down the DNS protocol in its
+entirety.</p>
+<p>RFCs can be a bit scary since they need to very precisely define
+protocols, edge cases and all, however 1035 was very readable. The scope
+of this project means that I don’t have to build a full-fledged DNS
+resolver, but can get away with limiting myself a bit (eg. to lookup A
+records only), but the RFC explaned how in DNS over TCP, there are 2
+bytes before the entire message which store the length of the DNS
+message (payload and headers).</p>
+<p>So, in the last example, what was actually happening was that
+<code>0x00 0x33</code> stored the info that “this DNS packet will be of
+51 bytes”, and by padding the entire message so that it was 53 bytes in
+length (51 bytes for the message + 2 bytes to store the length), I was
+validating this statement. Hence why any change in these two bytes or
+not padding to 53 bytes was invalidating my packet in Wireshark.</p>
+<p>Some other things I fixed were:</p>
+<ul>
+<li><p>There were some severe discrepancies in the types of certain
+attributes, like the fact that NAME in Response was not being stored as
+a <code>Vec&lt;u8&gt;</code> or that the TTL was not an
+<code>i32</code>. These were also addressed to comply with
+standards.</p></li>
+<li><p>Some Response parsing code was added so that more fields were
+stored correctly, along with some checks on these values so that we get
+a correct response code, or to store all the IP addresses that have been
+sent to us, or to reconstruct the domain name from the Response
+bytes.</p></li>
+<li><p>We can take a command line argument now of what hostname we wish
+to look up.</p></li>
+<li><p><code>Display</code> trait was implemented so that we can print
+the header and response to <code>stdout</code> nicely, with most fields
+in hexadecimal representation</p></li>
+</ul>
+<p>After this, I just some minor clean up work before switching to the
+connection checker to make some progress there.</p>
+<h2 id="printing-current-circuit-info">Printing Current Circuit
+Info</h2>
+<p>One feature of the connection checker I’d proposed is the ability to
+see the current circuit being used by Arti.</p>
+<p>Here, circuit refers to the three hops that your traffic will take
+through the Tor Network before being sent to your destination. You can
+view this in Tor Browser by clicking on the padlock next to the address
+bar. It shows you the IP addresses of the nodes and the country in which
+they reside. If you are connected using a bridge, it shows that instead
+as well as the specific pluggable transport you may be using.</p>
+<p>I asked about how we could implement this feature using Arti, and
+here is where I learned something new: Tor Browser simplifies.</p>
+<ul>
+<li><p>Tor creates multiple circuits when it initializes, both to help
+meet the need of multiple circuits later on down the line and because
+not every stream can be routed over one circuit.</p></li>
+<li><p>Here, a stream is a <code>DataStream</code> as exported by
+<code>arti-client</code> (ie, analogous to
+<code>TcpStream</code>)</p></li>
+<li><p>In browsers, one page usually loads in resources from other
+domains or different files on the same server. This means different
+<code>DataStream</code>s for different resources and thus different
+circuits.</p></li>
+<li><p>So, if <code>example.com</code> loads in
+<code>cdn.example.com/image.jpg</code>, for example, both these requests
+may occur over different circuits entirely, and so the Tor Browser
+circuit info is misleading since it won’t depict all these circuits
+being used to render the page.</p></li>
+</ul>
+<p>Now, Arti <em>can</em> give you the connection info for a particular
+<code>DataStream</code>, but it will require the
+<code>experimental-api</code> crate feature. After some finagling with
+<code>Cargo.toml</code>, I got the required API running using
+<code>experimental</code> crate feature instead (perhaps because some
+other API that I indirectly called was using it?)</p>
+<p>After that, it was just a matter of making a dummy request and
+printing the circuit that was used for that.</p>
+<h2 id="contributing-to-arti">Contributing to Arti</h2>
+<p>During all of this, I was also trying to setup Snowflake connections
+in the connection checker as well as the Arti proxy. For the proxy, it
+is done by configuring <code>arti.toml</code>, which lives in
+<code>~/.config/arti</code>.</p>
+<p>A sample <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/blob/main/crates/arti/src/arti-example-config.toml">arti.toml</a>
+is provided in the Arti repo for reference. It also contained
+instructions on how to configure a bridge.</p>
+<p>However, in a rush to configure Arti, I skipped over reading some of
+these instructions and had created an invalid config.</p>
+<p>You see, in the TOML, you’re supposed to configure bridges by writing
+the following:</p>
+<pre><code># Copied this and simplified from Arti&#39;s sample config, the below bridge is a dummy one and won&#39;t work
+[bridges]
+bridges = [ 
+     &quot;obfs4 bridge.example.net:80 $0bac39417268b69b9f514e7f63fa6fba1a788958 ed25519:dGhpcyBpcyBbpmNyZWRpYmx5IHNpbGx5ISEhISEhISA iat-mode=1&quot;,
+]
+
+[[bridges.transports]]
+
+# Which pluggable transports does this binary provide?
+protocols = [&quot;obfs4&quot;]
+
+# Path to the binary to be run.
+path = &quot;/usr/bin/obfsproxy&quot;</code></pre>
+<p>Note: I try to explain what all this means as best I can, but if some
+of the jargon doesn’t seem clear to you, I recommend reading <a
+href="https://tb-manual.torproject.org/circumvention">the Tor Project’s
+guide on censorship circumvention</a> for more details.</p>
+<p>The <code>[bridges]</code> section holds the bridge descriptor, which
+is basically that long line of text which contains what type of bridge
+it is, the IP:port and some authentication info so that we can be sure
+we actually are connected to the bridge and not some impostor.</p>
+<p>The <code>[[bridges.transports]]</code> section houses some more
+additional info about pluggable transports, which are the different
+protocols that Tor can use to connect to a bridge and in the process
+defeat censors which block Tor connections. There are various bridge
+types, including <code>obfs4</code> (like the one given above) and
+<code>Snowflake</code>.</p>
+<p>We can see in this section we have to give info on where the
+pluggable transport binary is located and what type of pluggable
+transport this is. This is because pluggable transports aren’t a part of
+the Tor binary, or Arti. They are maintained and distributed separately.
+For instance, the CLI version of Snowflake is written in Go.</p>
+<p>So now comes the explaination of what I did wrong:</p>
+<ul>
+<li><p>I didn’t configure <code>[[bridges.transports]]</code> at all,
+because I didn’t even see it, I just pasted a snowflake bridge into the
+<code>[bridges]</code> section.</p></li>
+<li><p>I also ignored the fact that Arti doesn’t have any code that
+actually implements connecting to bridges, the <code>tor-ptmgr</code>
+crate is just to call external pluggable transports and provide a Rust
+interface to manage them.</p></li>
+</ul>
+<p>Thanks to help from <a href="https://trinity.fr.eu.org/">trinity</a>
+and <a href="https://gitlab.torproject.org/Diziet">Diziet</a>, who
+helped me identify these issues, I got Arti to connect to a pluggable
+transport.</p>
+<p>However, I am actually glad I made these mistakes, since it
+highlighted what someone else who is new to Arti may have done as well.
+In particular, some weaknesses in the Arti docs (and one in the code)
+were brought to our attention and some issues and corresponding MRs were
+created to rectify these.</p>
+<p>These were:</p>
+<ul>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/issues/879">arti#879</a></p></li>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/issues/875">arti#875</a></p></li>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1216">arti!1216</a></p></li>
+</ul>
+<p>In addition, I also opened up the following MR to try to let the user
+know that pluggable transports weren’t setup right as a warning. (This
+MR is in a draft stage at the time of writing and may have changed by
+the time you click on it): <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1229">arti!1229</a></p>
+<p>Also, while writing example code for Snowflake bridges, trinity
+spotted a <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/issues/878">bug</a>
+in Arti.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Overall, this was a good week, I learned a lot about DNS, read an RFC
+for the first time and even helped contribute to Arti, which involved
+using a lot of <code>info!</code> messages and <code>grep</code> to
+understand the flow of control in Arti.</p>
+<!-- FOOT START -->
+<hr />
+<p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and footers (including this one) to any document that’s published here.</p>
+<p>Copyright © 2023 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a></p>
+</html>
