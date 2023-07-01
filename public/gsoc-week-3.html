@@ -1,0 +1,232 @@
+<html>
+<head>
+	<link rel='stylesheet' type='text/css' href='styles/style.css'>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>GSoC 2023 Blog 3 - Nonchalant Guidance</title>
+</head>
+<div align='center'>
+<h1><a href="index.html">Nonchalant Guidance</a></h1>
+<p><a href='aboutme.html'>About Me</a>·<a href='comingsoon.html' title='coming soon!'>RSS</a>·<a href="https://sr.ht/~gotlou">My Projects</a>·<a href='https://linkedin.com/in/saksham--mittal' title='LinkedIn'>LinkedIn</a></p>
+</div>
+<form method="get" id="ddgSearch" action="https://duckduckgo.com/">
+    <input type="hidden" name="sites" value="gotlou.srht.site"/>
+    <input type="hidden" name="k7" value="#ffffff"/>
+    <input type="hidden" name="k8" value="#222222"/>
+    <input type="hidden" name="k9" value="#00278e"/>
+    <input type="hidden" name="kx" value="#20692b"/>
+    <input type="hidden" name="kj" value="#fafafa"/>
+    <input type="hidden" name="kt" value="p"/>
+    <input type="text" name="q" placeholder="Search this website.." aria-label="Search gotlou.srht.site on DuckDuckGo"/>
+    <button type="submit">Search</button>
+</form>
+<hr />
+<!-- HEAD END -->
+Added on: Saturday, 01 July, 2023 | Updated on: -
+<h1 id="gsoc-2023-blog-3">GSoC 2023 Blog 3</h1>
+<p>Hello there! This is the third in a series of blogposts detailing the
+work I will be doing for the <a href="https://www.torproject.org">Tor
+Project</a> as part of Google Summer of Code 2023.</p>
+<p>Here I will detail some of the work I did during some period of time,
+the challenges I faced and the outcomes of that work.</p>
+<p>This will be a bit longer update since I had been a bit busier the
+past two weeks and wasn’t able to create a new entry here.</p>
+<h2 id="brief-intro-on-my-project">Brief Intro on My Project</h2>
+<p>The project I was selected for is titled “Arti API exploration to
+build example tools”.</p>
+<p>Confused? Let’s break it down.</p>
+<ul>
+<li><p>Arti is the Rust rewrite of the Tor software that allows you to
+make TCP connections through the Tor Network, run Tor relays and bridges
+etc. You can read more about it <a
+href="https://gitlab.torproject.org/tpo/core/arti">from its
+repository</a></p></li>
+<li><p>Arti was built in mind with the goal that other developers should
+be able to use Arti to build Tor-powered software, and has incorporated
+that thinking into its design.</p></li>
+</ul>
+<p>So, it exports some crates that other developers can use in their
+Rust projects, and has some documentation on them, including some basic
+demonstration code snippets that you can follow along with at home.</p>
+<ul>
+<li><p>However, Arti is a fairly bleeding-edge project. It didn’t hit
+version 1.0.0 too long ago, and due to the breakneck speed of
+development, APIs are not set in stone. There is a lot of breakage that
+could be potentially encountered by another developer.</p></li>
+<li><p>In this project, I will be creating certain sample programs in
+Rust using Arti’s APIs</p></li>
+</ul>
+<p>My goal will be to build my sample programs and document any
+difficulties that come up.</p>
+<ul>
+<li>Maybe certain APIs are hard to use, or undocumented, or certain
+operations cause Arti to fail (exposing a bug). All these issues will be
+brought to the notice of the Arti team and fixes can be discussed and
+implemented.</li>
+</ul>
+<p>In this way, the project can get valuable feedback from an outsider
+who doesn’t have much knowledge of the codebase and the way the Arti
+proxy does things.</p>
+<h2 id="making-the-dns-client-ready-for-demonstration">Making the DNS
+client ready for demonstration</h2>
+<p>After the work done last time, there was little work left for the DNS
+client. I added in basic CLI arg parsing and tested fetching DNS records
+for:</p>
+<ul>
+<li><p><code>google.com</code>: typically returns only one IP address,
+it is also a very simple domain name</p></li>
+<li><p><code>news.ycombinator.com</code>: it is subdomain and also
+returns one IP address</p></li>
+<li><p><code>cloudflare.com</code>: simple domain name but it returns
+multiple IP addresses</p></li>
+</ul>
+<p>While the previous code would work for the first two situations, I
+found that for <code>cloudflare.com</code> I would only get one IP
+address printed to the display.</p>
+<p>I held off getting a review of the code to fix this issue, and it
+involved me once again using direct DNS over TCP connections so I could
+inspect the traffic using Wireshark, and re-reading RFC 1035 to
+interpret any mysterious bytes I could not decipher.</p>
+<p>The main issue was found to be the compression scheme that DNS uses
+for hostnames. In DNS, each time there is a new IP address that is said
+to correspond to a queried domain name, we have to transmit a resource
+record again. This RR includes the domain name, the record type (A
+record), the class (Internet), the TTL, the record size (for IPv4, it is
+4 bytes), and finally the record name (ie, IP address).</p>
+<p>Now, the flaw here is that we will have to pack the hostname into the
+DNS response again and again for multiple IP addresses. To solve this,
+subsequent DNS resource records will “compress” the hostname into 2
+bytes, and these 2 bytes will simply be the offset where the hostname
+starts. The offset is measured from the start of the DNS response.</p>
+<p>For example, for <code>cloudflare.com</code>, there are typically 2
+RRs in one response. The first one will have the
+<code>cloudflare.com</code> domain be encoded as described in RFC 1035,
+but the second one will simply have 2 bytes pointing to where
+<code>cloudflare.com</code> is located in the first RR relative to the
+start of the DNS response.</p>
+<p>To get this working, I had to experiment for a bit before I ended up
+writing working code, and so the DNS client was ready to be showcased
+for a review.</p>
+<p>The review was conducted by <code>nickm</code> and <a
+href="https://gitlab.torproject.org/gotlou/arti-sample-project/-/merge_requests/1">a
+variety of issues</a> were spotted which are going to be worked on in
+the short term. Some of these issues are also present in other crates
+I’ve created for this project, so I’ll be sure to fix them there as
+well.</p>
+<h2 id="snowflake-integration-issues">Snowflake Integration Issues</h2>
+<p>In the other projects, ie, the connection-checker and the
+download-manager, I had less success. It seems Snowflake is just a more
+noisy medium to connect to the Tor Network, and my applications were not
+able to deal with the increased timeouts.</p>
+<p>Still, this didn’t seem to be as big of an issue when running Arti
+the proxy with a Snowflake connection, so I think there is some issue
+somewhere that I am missing.</p>
+<h2 id="obfs4-connection-checker">obfs4 connection checker</h2>
+<p>It wasn’t all doom and gloom, however. I did get started on arguably
+the most impactful project in this repo: the obfs4 connection checker
+(this is a horrible name, but naming is one of the hardest problems in
+computer science, and I can’t solve them all unfortunately).</p>
+<p>This tool simply takes in a list of all obfs4 bridges (for a quick
+recap, this is a Tor entry node not listed publicly and using the obfs4
+protocol, which tries its best to obfuscate the TCP connection so
+censors can’t tell if its Tor or an innocent TCP connection), tries to
+create a <code>Channel</code>, which is just a direct connection to a
+Tor node, and observes whether it is online or not.</p>
+<p>Such a tool, intended to be run by the Tor Project, will help them
+monitor the health of these extremely important subset of Tor nodes.
+Thanks to Arti’s inherent tendency to leverage multiple threads (thanks
+fearless concurrency!) and the eventual goal of the project to replace C
+Tor, it is preferable to build such a tool in Arti.</p>
+<p>The basic design first started out by copying some code from the
+connection checker to set up an obfs4 connection, and I learned how to
+use <code>ChanMgr</code> as well.</p>
+<h3 id="chanmgr">ChanMgr</h3>
+<p><code>ChanMgr</code> is an object that helps manage channels, ie,
+connections to Tor relays. Its used internally by
+<code>TorClient</code>, but for the purposes of this connection checker,
+I needed direct access to it in order to set up a channel to each bridge
+I was testing. (Creating a full Tor circuit and testing if we can
+connect to a particular host was the first idea I had, but after some
+discussion with <code>nickm</code>, it was clear that in order to just
+check if a bridge was online, it was better to try to establish a
+channel to that bridge than use it for a circuit, both for speed and
+network health purposes).</p>
+<p>Such an API did not exist, but it was trivial for me to add one in
+(see <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1275">arti!1275</a>)</p>
+<p>I then changed my <code>Cargo.toml</code> for the checker to use the
+Arti crates from GitLab directly, since I didn’t want to wait around for
+the release on crates.io to be updated with this new MR. This later
+catapulted to shifting all of the projects’ Arti dependencies from
+crates.io to GitLab for simplicity.</p>
+<p>Now that I could access <code>ChanMgr</code>, allow me to explain how
+this program initially worked:</p>
+<ol type="1">
+<li><p>I had a list of 11 obfs4 relays I obtained from <a
+href="https://gitlab.torproject.org/tpo/applications/tor-browser-build/-/blob/main/projects/common/bridges_list.obfs4.txt">the
+Tor Browser Bundle repo</a>. These bridge lines served as test relays to
+get everything up and running</p></li>
+<li><p>I would configure <code>TorClient</code> by using
+<code>TorClientBuilder</code> to use obfs4 transport and pass in the
+specific relay to use by iterating through the bridge lines one by
+one</p></li>
+<li><p>I would obtain <code>ChanMgr</code> from <code>TorClient</code>
+(using the API I added in) and <code>ChanMgr::get_or_launch()</code>
+would be called, which will try to create a Channel to the given bridge.
+If that works, a Channel object is returned, else, we get an
+error.</p></li>
+</ol>
+<p>Using this simple property, we can evaluate the status of each
+bridge.</p>
+<h3 id="fearless-concurrency">Fearless concurrency?</h3>
+<p>Now initially, this code was all sequential, but in order to speed it
+up, I had to leverage Tokio tasks which would free up the main thread
+from the I/O block. Initially, I attempted to create a task out of the
+entire process from step 2, however it was found that
+<code>TorClientBuilder</code> did not implement the <code>Send</code>
+trait, which is the trait that allows data to be sent between threads
+safely. The absense of <code>Send</code> meant I was getting “future
+couldn’t be sent between threads safely” errors and thus my code
+wouldn’t compile.</p>
+<p>I reported this <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/issues/924">bug</a>
+and a <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1307">fix</a>
+was also created which includes the addition of a test to prevent this
+from happening again.</p>
+<p>Discussion on <code>ChanMgr</code> also led <code>nickm</code> to
+request a method in <code>ChanMgr</code> which would allow you to
+immediately expire a channel as well (I opened <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/issues/927">a
+ticket</a> on his behalf). The current behavior of <code>ChanMgr</code>
+when it comes to when a Channel is retired was not documented, and when
+I got my answers, I <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1316">added
+this info</a>, which was then <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1318">elaborated
+upon</a></p>
+<p>After all this was done, I had the ability to spawn tasks for each
+test, from creating a TorClient all the way to trying to make the
+Channel. There are still some antipatterns in the code I have to fix,
+however. For now, I have a new <code>TorClient</code> being created
+every time, but the docs really want you to avoid this since it brings
+up problems with shared state directories that Arti uses to store
+different information related to the Tor network (eg. directory info
+which stores each Tor relay in order to create a circuit). I’ll be sure
+to fix this as well.</p>
+<p>The repeated issues prompted from such discouraged usage of the APIs
+prompted the opening of <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/issues/946">an
+issue</a> to discuss how best to solve this.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Overall, I’d say my project is coming along nicely. I’ve ended up
+contributing (or causing contributions) to underdocumented parts of the
+Arti codebase all while the devs have been hard at work getting onion
+services and key management working in Arti, and all the while managed
+to break ground on a new example project that (hopefully) can also be
+used in production one day!</p>
+<!-- FOOT START -->
+<hr />
+<p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and footers (including this one) to any document that’s published here.</p>
+<p>Copyright © 2023 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a></p>
+</html>
