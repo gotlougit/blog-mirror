@@ -1,0 +1,158 @@
+<html>
+<head>
+	<link rel='stylesheet' type='text/css' href='styles/style.css'>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>GSoC 2023 Blog 3 - Nonchalant Guidance</title>
+</head>
+<div align='center'>
+<h1><a href="index.html">Nonchalant Guidance</a></h1>
+<p><a href='aboutme.html'>About Me</a>·<a href='comingsoon.html' title='coming soon!'>RSS</a>·<a href="https://sr.ht/~gotlou">My Projects</a>·<a href='https://linkedin.com/in/saksham--mittal' title='LinkedIn'>LinkedIn</a></p>
+</div>
+<form method="get" id="ddgSearch" action="https://duckduckgo.com/">
+    <input type="hidden" name="sites" value="gotlou.srht.site"/>
+    <input type="hidden" name="k7" value="#ffffff"/>
+    <input type="hidden" name="k8" value="#222222"/>
+    <input type="hidden" name="k9" value="#00278e"/>
+    <input type="hidden" name="kx" value="#20692b"/>
+    <input type="hidden" name="kj" value="#fafafa"/>
+    <input type="hidden" name="kt" value="p"/>
+    <input type="text" name="q" placeholder="Search this website.." aria-label="Search gotlou.srht.site on DuckDuckGo"/>
+    <button type="submit">Search</button>
+</form>
+<hr />
+<!-- HEAD END -->
+Added on: Sunday, 09 July, 2023 | Updated on: -
+<h1 id="gsoc-2023-blog-3">GSoC 2023 Blog 3</h1>
+<p>Hello there! This is the fourth in a series of blogposts detailing
+the work I will be doing for the <a
+href="https://www.torproject.org">Tor Project</a> as part of Google
+Summer of Code 2023.</p>
+<p>Here I will detail some of the work I did during some period of time,
+the challenges I faced and the outcomes of that work.</p>
+<h2 id="brief-intro-on-my-project">Brief Intro on My Project</h2>
+<p>The project I was selected for is titled “Arti API exploration to
+build example tools”.</p>
+<p>Confused? Let’s break it down.</p>
+<ul>
+<li><p>Arti is the Rust rewrite of the Tor software that allows you to
+make TCP connections through the Tor Network, run Tor relays and bridges
+etc. You can read more about it <a
+href="https://gitlab.torproject.org/tpo/core/arti">from its
+repository</a></p></li>
+<li><p>Arti was built in mind with the goal that other developers should
+be able to use Arti to build Tor-powered software, and has incorporated
+that thinking into its design.</p></li>
+</ul>
+<p>So, it exports some crates that other developers can use in their
+Rust projects, and has some documentation on them, including some basic
+demonstration code snippets that you can follow along with at home.</p>
+<ul>
+<li><p>However, Arti is a fairly bleeding-edge project. It didn’t hit
+version 1.0.0 too long ago, and due to the breakneck speed of
+development, APIs are not set in stone. There is a lot of breakage that
+could be potentially encountered by another developer.</p></li>
+<li><p>In this project, I will be creating certain sample programs in
+Rust using Arti’s APIs</p></li>
+</ul>
+<p>My goal will be to build my sample programs and document any
+difficulties that come up.</p>
+<ul>
+<li>Maybe certain APIs are hard to use, or undocumented, or certain
+operations cause Arti to fail (exposing a bug). All these issues will be
+brought to the notice of the Arti team and fixes can be discussed and
+implemented.</li>
+</ul>
+<p>In this way, the project can get valuable feedback from an outsider
+who doesn’t have much knowledge of the codebase and the way the Arti
+proxy does things.</p>
+<h2 id="documenting-the-dns-resolver">Documenting the DNS resolver</h2>
+<p>I worked on the notes I’d gotten on the DNS resolver this week,
+mainly to document everything. During this process I mainly got used to
+the <code>rustdocs</code> convention of documenting my code and also
+setup a clippy rule to warn me in case any method had missing
+documentation.</p>
+<p>I ended up documenting structs, their fields and a couple functions,
+as well as adding some introductory text detailing the DNS resolver
+project’s objective and a warning that this homegrown DNS implementation
+really wasn’t meant to be used anywhere in production, but rather served
+as a demonstration that <em>any</em> homegrown network protocol could be
+subbed in and served over Tor using the Arti APIs.</p>
+<p>This was a fun exercise, and I will expand the other projects’
+documentation in the coming weeks as well.</p>
+<h2 id="changing-return-type-for-parsing-methods">Changing return type
+for parsing methods</h2>
+<p>In the DNS resolver, there is a trait called <code>FromBytes</code>
+that is implemented for the structs <code>Header</code> (which is the
+DNS header represented as a struct), <code>Query</code> (which is the
+DNS header + query), <code>ResourceRecord</code> (which can be thought
+of as containing the answer for a query) and <code>Response</code>
+(which is just the header + query + one or more resource records).</p>
+<p>This <code>FromBytes</code> trait defines a method
+<code>from_bytes()</code> which takes in a slice of bytes and returns
+the initialized struct. As the name implies, all the values for the
+fields will be taken from the bytes passed to this method.</p>
+<p>Now, the problem with this method was that it passes the struct no
+matter what. Even if we give invalid byte sequence to the method, we
+will get a struct. This is highly dangerous since we don’t have any way
+to handle invalid byte sequences or convey this message to functions
+lower down the call stack.</p>
+<p>Hence, I decided to change the return type from <code>Self</code>
+(the struct itself) to <code>Option&lt;Self&gt;</code> (Option is an
+enum which either returns <code>Some&lt;Self&gt;</code> or
+<code>None</code>, hence we can denote the error condition using
+<code>None</code> and a valid struct using <code>Some</code>).</p>
+<p>However, since this is a trait, <code>Self</code> can be a variable
+sized struct, and Rust doesn’t like that. So, we wrap it inside a
+<code>Box</code> (really just a very simple pointer setup, the
+<code>Box</code> will contain a reference to wherever the struct is
+located on the heap so we can pass the <code>Box</code> around easily
+and cheaply and also be aware of its size)</p>
+<p>Hence the final return type becomes
+<code>Option&lt;Box&lt;Self&gt;&gt;</code> which is a cleaner API than
+just returning <code>Self</code> This also has the nice side effect that
+the DNS resolver doesn’t crash when I make a request for a domain name
+that isn’t registered!</p>
+<h2 id="handling-timeouts-in-download-manager">Handling timeouts in
+download manager</h2>
+<p>For this week, I intended to work on adding resume capabilities for
+the download manager, ie, if I were to abruptly cut off network
+connection and later restart the download manager, I should be able to
+pick up my download where I left off.</p>
+<p>However, I did notice a feature that was in a way more important:
+retrying requests. See, when I configured the download manager to use
+Snowflake to download Tor Browser, I would see a lot of failed circuits
+and timeouts. This also happened when I used a normal Tor connection,
+but to a much lesser extent.</p>
+<p>So, to address this pitfall, I simply decided I wanted to check if we
+got anything back from the network and if not, just re-run the code that
+makes the request using recursion.</p>
+<p>However, Rust doesn’t permit asynchronous recursive functions, likely
+because it will make the call stack very weird, so I ended up just doing
+it iteratively instead. The code now tries up to six times to make the
+same request and if it doesn’t work after all that, it just gives
+up.</p>
+<p>This has made the download manager much more robust, as I do see that
+on occasion one or two requests do indeed trigger a retry.</p>
+<h2 id="more-channel-api-being-exposed">More Channel API being
+exposed</h2>
+<p>While working on the obfs4 connection checker, it was suggested that
+<code>ChanMgr</code> not be used, and instead a lower level API would be
+more suitable, since <code>ChanMgr</code> does some setup steps that are
+just irrelevant for this use case.</p>
+<p>The <code>ChannelFactory</code> trait in <code>tor-chanmgr</code>
+defines an interface through which I can build a channel. Exposing this
+in <code>ChanMgr</code> will allow me to directly create a Channel. This
+API is exposed in <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1374">this
+MR</a> and is currently not merged.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>This week was also fairly eventful, I ended up working on a lot of
+the review notes I got on the DNS resolver, fix up download manager,
+learn and work around the Rust compiler’s rules to implement better
+design practices in my programs and made another MR upstream.</p>
+<!-- FOOT START -->
+<hr />
+<p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and footers (including this one) to any document that’s published here.</p>
+<p>Copyright © 2023 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a></p>
+</html>
