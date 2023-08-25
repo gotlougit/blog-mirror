@@ -1,0 +1,344 @@
+<html>
+<head>
+	<link rel='stylesheet' type='text/css' href='styles/style.css'>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>GSoC 2023: Final Post - Nonchalant Guidance</title>
+</head>
+<div align='center'>
+<h1><a href="index.html">Nonchalant Guidance</a></h1>
+<p><a href='aboutme.html'>About Me</a>·<a href='comingsoon.html' title='coming soon!'>RSS</a>·<a href="https://sr.ht/~gotlou">My Projects</a>·<a href='https://linkedin.com/in/saksham--mittal' title='LinkedIn'>LinkedIn</a></p>
+</div>
+<form method="get" id="ddgSearch" action="https://duckduckgo.com/">
+    <input type="hidden" name="sites" value="gotlou.srht.site"/>
+    <input type="hidden" name="k7" value="#ffffff"/>
+    <input type="hidden" name="k8" value="#222222"/>
+    <input type="hidden" name="k9" value="#00278e"/>
+    <input type="hidden" name="kx" value="#20692b"/>
+    <input type="hidden" name="kj" value="#fafafa"/>
+    <input type="hidden" name="kt" value="p"/>
+    <input type="text" name="q" placeholder="Search this website.." aria-label="Search gotlou.srht.site on DuckDuckGo"/>
+    <button type="submit">Search</button>
+</form>
+<hr />
+<!-- HEAD END -->
+Added on: Friday, 25 August, 2023 | Updated on: -
+<h1 id="gsoc-2023-final-post">GSoC 2023: Final Post</h1>
+<p>Hello there! This is the last in series of blogposts detailing the
+all the work I have been doing for the <a
+href="https://www.torproject.org">Tor Project</a> as part of Google
+Summer of Code 2023.</p>
+<p>This will serve as a complete summary of the work I did, the things I
+learned along the way, and the work that remains.</p>
+<h2 id="brief-intro-on-my-project">Brief Intro on My Project</h2>
+<p>The project I was selected for is titled “Arti API exploration to
+build example tools”.</p>
+<p>Confused? Let’s break it down.</p>
+<ul>
+<li><p>Arti is the Rust rewrite of the Tor software that allows you to
+make TCP connections through the Tor Network, run Tor relays and bridges
+etc. You can read more about it <a
+href="https://gitlab.torproject.org/tpo/core/arti">from its
+repository</a></p></li>
+<li><p>Arti was built in mind with the goal that other developers should
+be able to use Arti to build Tor-powered software, and has incorporated
+that thinking into its design.</p></li>
+</ul>
+<p>So, it exports some crates that other developers can use in their
+Rust projects, and has some documentation on them, including some basic
+demonstration code snippets that you can follow along with at home.</p>
+<ul>
+<li><p>However, Arti is a fairly bleeding-edge project. It didn’t hit
+version 1.0.0 too long ago, and due to the breakneck speed of
+development, APIs are not set in stone. There is a lot of breakage that
+could be potentially encountered by another developer.</p></li>
+<li><p>This, in this project, I created certain sample programs in Rust
+using Arti’s APIs</p></li>
+</ul>
+<p>My goal is to build my sample programs and document any difficulties
+that come up.</p>
+<ul>
+<li>Maybe certain APIs are hard to use, or undocumented, or certain
+operations cause Arti to fail (exposing a bug). All these issues were
+brought to the notice of the Arti team and fixes were discussed and
+implemented.</li>
+</ul>
+<p>In this way, the project can get valuable feedback from an outsider
+who doesn’t have much knowledge of the codebase and the way the Arti
+proxy does things.</p>
+<h2 id="the-sample-projects">The Sample Projects</h2>
+<p>The sample projects I ended up creating were:</p>
+<ul>
+<li>A download manager that used Arti to create six simultaneous
+connections to connect to the Tor Project’s website and download a
+hardcoded version of the Linux version of the Tor Browser Bundle, and
+also verify its SHA256 checksum.</li>
+</ul>
+<p>This could also theoretically be distributed to people living in
+countries where the normal distribution methods for the Tor Browser may
+be banned or blocked by authorities.</p>
+<ul>
+<li><p>A DNS resolver that uses a bespoke DNS over TCP implementation to
+connect to Cloudflare’s DNS server over the Tor network. This project
+mainly illustrates the usage of a custom TCP-based protocol over Tor, in
+the hopes that people wishing to tunnel arbitrary streams over Tor can
+see how much (or rather, how little) work would go into making this
+possible.</p></li>
+<li><p>A connection checker, which is just a small tool that tries to
+connect to Tor through various means, including pluggable transports. It
+was the first project that was utilizing the pluggable transport portion
+of the Arti crates.</p></li>
+<li><p>An obfs4 connection tool, which was not only a sample project,
+but also a vital new addition to the Tor Project’s arsenal for
+monitoring the health of the Tor network. This tool sets up a RESTful
+API which can continuously check on the health of various obfs4 bridges
+fed to it, and report these statuses. A client program can feed it
+bridges to monitor and poll an updates endpoint for getting the updated
+statuses of these bridges.</p></li>
+</ul>
+<p>This project required exposing some APIs or attributes from Arti in
+order to create channels (which are direct, encrypted connections that
+only carry Tor protocol messages) to each bridge we need to test.</p>
+<ul>
+<li>A small program called pt-proxy, which creates a SOCKS5 proxy server
+and client tunnelled over the obfs4 protocol in order to avoid
+censorship of the connection.</li>
+</ul>
+<p>This project necessitated adding basic APIs to set up an obfs4
+subprocess in server mode. I had to look at <a
+href="https://gitlab.torproject.org/tpo/core/torspec/-/blob/main/pt-spec.txt">pt-spec.txt</a>,
+which defines the spec for how Tor/Arti and pluggable transports
+interact with each other, and then modify the <a
+href="https://lib.rs/crates/tor-ptmgr">tor-ptmgr</a> crate to perform
+the required operations. (more on this later)</p>
+<p>Note that these projects have been reviewed multiple times by <a
+href="https://gitlab.torproject.org/gabi-250">gabi</a> and <a
+href="https://gitlab.torproject.org/nickm">nickm</a> (aka Nick, who was
+my mentor this year). Many capabilities, docs, code restructurings etc
+are a result of their suggestions. Thank you very much!</p>
+<h2 id="bugs-found">Bugs Found</h2>
+<p>Now, part of the reason why these sample projects were being created
+is to see what an external developer, like me, who has no prior
+experience or knowledge of Arti or its internals, would be able to
+accomplish using these APIs and what hurdles would they run into during
+the course of creating the sample projects.</p>
+<p>Some of those hurdles are documented below in the form of bug reports
+I filed:</p>
+<ul>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/issues/779">SQLite
+error on making repeated requests</a>: this was the first bug I filed,
+and I found it on the same day I started experimenting with Arti’s APIs!
+(This was before the GSoC period formally began, but I think it still
+counts). Essentially, you are not supposed to create two
+<code>TorClient</code>s in Arti, because Arti has a shared state
+directory that it can’t manage very well under that configuration. This
+bug arises as a side effect of that, and while it isn’t best practice,
+it was still a valid bug in the code nonetheless. nickm would later <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1055">fix</a>
+this issue.</p></li>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/issues/875">Add
+example code to use Snowflake based bridges in arti-client</a>: this was
+filed because I myself did not find any good guidance through the
+existing docs on how I can launch a connection via the Snowflake
+pluggable transport. <a
+href="https://gitlab.torproject.org/trinity-1686a">trinity</a> would end
+up <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1216">fixing</a>
+this disparity.</p></li>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/issues/879">Mention
+Pluggable Transports are not a part of Arti</a>: this may sound very
+trivial, but the devil’s in the details. Someone who may wish to use
+Arti may not necessarily be aware that pluggable transports aren’t a
+part of Arti (or even the original C Tor codebase), but are rather
+maintained separately and are launched as subprocesses by the parent
+Arti/Tor process. trinity ended up fixing this in the same MR as the one
+linked for the previous bug.</p></li>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/issues/924">TorClientBuilder
+doesn’t implement Send</a>: yet another concurrency bug, this one was
+fairly straightforward: the <code>TorClientBuilder</code> needed to be
+marked as <code>Send</code> (it is a marker trait saying “whichever
+struct is marked Send can be sent across threads safely”) and not
+<code>!Send</code> (which says “don’t implement Send for this struct”).
+The <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1307">fix</a>
+involved just marking <code>TorClientBuilder</code> as
+<code>Send + Sync</code> and adding a test which fails if this is
+violated.</p></li>
+</ul>
+<p>There are some open issues I filed as well:</p>
+<ul>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/issues/927">Allow
+ChanMgr to expire a specific channel immediately</a></p></li>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/issues/995">Make
+ErrorReport not be Sized so we can return Box<dyn ErrorReport> for Arti
+errors</a></p></li>
+</ul>
+<h2 id="merge-requests-created">Merge Requests Created</h2>
+<p>I also ended up creating and getting many Merge Requests merged into
+Arti. These gradually transitioned from trivial to non-trivial. Some of
+these were code or doc fixes for bugs I filed myself, while others were
+feature requests for exposing a capability that a sample project would
+require.</p>
+<p>These include:</p>
+<ul>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1037">Use
+humantime in tor-checkable and tor-guardmgr</a>: my first MR to Arti
+involved just adjusting times used for testing to be human-readable in
+the <a href="https://www.rfc-editor.org/rfc/rfc3339">RFC3339</a> format.
+The times used in this MR were all historic moments where the people
+would gain freedom. I found this quite touching.</p></li>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1042">Remove
+unnecessary warning from arti-hyper/README</a>: another beginner level
+MR to Arti, this just involved removing a warning from arti-hyper (a
+crate from Arti) that referenced a TLS issue on macOS that was later
+worked around.</p></li>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1172">Change
+log levels of messages from INFO to others</a>: this MR involved
+changing the log level of three log messages to <code>debug</code> and
+add two warnings. This was done to not unnecessarily give scary messages
+to a normal end user who runs Arti at the default <code>info</code> log
+level.</p></li>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1213">Expand
+arti-client docs to include error reporting section</a>: during
+development, I was made aware that Arti had an <code>ErrorReport</code>
+trait implemented by all the Arti errors which allowed you to get a
+pretty-printed error message by calling the <code>report()</code>
+method. It would also generate error messages that would be easier to
+copy-paste into bug reports and to read, so I created an MR to inform
+any user reading <code>arti-client</code> docs about utilizing this
+functionality.</p></li>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1229">Add
+error if [[bridges.transports]] isn’t written in config file</a>: while
+learning more about how PTs are configured in Arti, I noticed a bug
+which allowed invalid configuration files to be used. The <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1229">bug</a>
+is triggered when one specified a bridge in <code>[bridges]</code>
+section of arti.toml but commented out
+<code>[[bridges.transports]]</code> entirely. It would end up trying to
+connect to Tor but never work, and would output cryptic panic errors
+instead.</p></li>
+</ul>
+<p>The MR, after being discussed and reviewed thoroughly by <a
+href="https://gitlab.torproject.org/Diziet">Diziet</a>, would end up
+being merged, adding the fix as well as test cases which will help catch
+this bug if there is a regression in the future. (Thank you Diziet for
+all the suggestions!)</p>
+<ul>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1273">Remove
+message ‘For now, only direct channels are supported’ in tor-chanmgr
+docs</a>: As I was exploring <code>tor-chanmgr</code> crate, I found
+that the docs were not consistent with the progress that had been made
+in Arti. The docs erroneously said that only direct channels (ie,
+channels to normal relays in the Tor network) were supported, when in
+fact the crate had since gained support for creating channels to bridges
+using any supported pluggable transport. I fixed this
+inconsistency.</p></li>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1275">Create
+chanmgr() method in TorClient</a>: This small MR just exposes the
+<code>ChanMgr</code> (it helps create channels) from
+<code>TorClient</code> (which helps us avoid writing the instantiation
+code ourselves). It was done in order for obfs4 checker to work, since
+obfs4 checker just builds channels to bridges rather than building an
+entire circuit.</p></li>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1316">Add
+Channel expiry info in ChanMgr docs</a>: after some discussion on how
+channels expire on IRC, I transcribed this info as best I could in the
+docs. <a href="https://gitlab.torproject.org/nickm">nickm</a> also
+created a <a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1318">similar
+MR</a> based on this MR with more info.</p></li>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1504">Add
+initial support for running a PT in server mode</a>: this MR adds
+low-level support for spawning a pluggable transport process with the
+required environment variables to operate in server mode, ie, it will
+listen for incoming connections made using the pluggable transport
+protocol, decode them and pass them onto a specified destination, where
+they can be processed accordingly.</p></li>
+</ul>
+<p>This work enables the <code>pt-proxy</code> sample project to work.
+It is the largest MR I’ve made to Arti to date, and involved the most
+work to write.</p>
+<p>The following two MRs were merged but their work was later undone as
+it was deemed unnecessary:</p>
+<ul>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1374">Expose
+channel builder in order to create channels more efficiently in external
+code</a></p></li>
+<li><p><a
+href="https://gitlab.torproject.org/tpo/core/arti/-/merge_requests/1403">Gate
+builder() behind experimental-api feature</a></p></li>
+</ul>
+<h2 id="work-left">Work Left</h2>
+<p>All that is currently left is to get final reviews from the Arti
+developers and open an MR to merge my work, which currently lives in <a
+href="https://gitlab.torproject.org/gotlou/arti-sample-project">a
+dedicated repo</a>, into the main <a
+href="https://gitlab.torproject.org/tpo/core/arti">Arti repo</a>.</p>
+<p>After some discussion with the developers, it was decided that these
+example projects will exist in a top-level <code>examples/</code>
+directory.</p>
+<h2 id="my-experience">My Experience</h2>
+<p>I had an overwhelmingly positive experience in GSoC this year. Here’s
+a brief, non-exhaustive list why:</p>
+<ul>
+<li>I got to learn about technical details from the Arti developers,
+everything from writing good docs, naming things properly, to code
+architecture. Code reviews were easily some of the best parts of GSoC
+for this reason.</li>
+</ul>
+<p>Since I only picked up Rust in the near past, I’ve ended up learning
+a lot of advanced Rust-isms from working on this project as well.</p>
+<ul>
+<li><p>I learned a lot about communicating across timezones, cultures
+etc. and using less ambiguous language in discussions to get my point
+across in a clearer manner. People tend to neglect the human aspect of
+open source development, but in my opinion, it is almost impossible for
+a good developer to not have good communication skills, especially
+proficiency in written English.</p></li>
+<li><p>I was given a ton of autonomy when it came to accomplishing my
+goals, and whenever I needed help I would get really good advice. This
+helped me develop my own research and self-learning skills further,
+while also being able to learn from my mentors in case a problem was too
+specific to this project to reason about alone.</p></li>
+</ul>
+<p>This didn’t mean I only popped up when things went wrong, though; I
+always made sure to update Nick about my plans for the week every
+Monday, which gave him the chance to suggest changes if my approach was
+flawed and to keep track of my progress.</p>
+<ul>
+<li>It felt very good to see pieces of code I wrote merged into a big
+project, where it will end up doing some good to the world, especially
+for Arti, where this code will eventually be used in sitations to guard
+freedom and the free flow of information, much to the chagrin of
+repressive regimes and iron-fisted ISPs alike.</li>
+</ul>
+<h2 id="conclusion">Conclusion</h2>
+<p>I am extremely thankful for this opportunity, and I hope that my work
+has been helpful to Arti and the Tor Project. I’ve ended up learning a
+lot, and it is in no small part due to the help I’ve gotten from all the
+developers I ended up interacting with (special mentions to nickm,
+Diziet, gabi, trinity, arma, shelikhoo, eta, ahf, and meskio)</p>
+<p>I’ve gained a ton of confidence in developing and contributing to
+open source projects of varying scales, and I hope to continue the good
+work started and outlined here in the future as well.</p>
+<!-- FOOT START -->
+<hr />
+<p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and footers (including this one) to any document that’s published here.</p>
+<p>Copyright © 2023 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a></p>
+</html>
