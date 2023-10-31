@@ -1,5 +1,25 @@
 {
   "nodes": {
+    "blog-helper": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1698747855,
+        "narHash": "sha256-Kg/bwZlFXVlJq+sPQTsUS9zXKwvC0Nu5MW4ZjH/zhHs=",
+        "owner": "~gotlou",
+        "repo": "blog-helper",
+        "rev": "08ed831cc3e537d5cab44f7b7aae5aa89ef5d2c7",
+        "type": "sourcehut"
+      },
+      "original": {
+        "owner": "~gotlou",
+        "repo": "blog-helper",
+        "type": "sourcehut"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1690327932,
@@ -16,6 +36,7 @@
     },
     "root": {
       "inputs": {
+        "blog-helper": "blog-helper",
         "nixpkgs": "nixpkgs"
       }
     }
