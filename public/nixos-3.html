@@ -1,0 +1,232 @@
+<html>
+<head>
+	<link rel='stylesheet' type='text/css' href='styles/style.css'>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Migrating to NixOS (Part 3) - Nonchalant Guidance</title>
+</head>
+<div align='center'>
+<h1><a href="index.html">Nonchalant Guidance</a></h1>
+<p><a href='aboutme.html'>About Me</a>·<a href='comingsoon.html' title='coming soon!'>RSS</a>·<a href="https://sr.ht/~gotlou">My Projects</a>·<a href='https://linkedin.com/in/saksham--mittal' title='LinkedIn'>LinkedIn</a></p>
+</div>
+<form method="get" id="ddgSearch" action="https://duckduckgo.com/">
+    <input type="hidden" name="sites" value="gotlou.srht.site"/>
+    <input type="hidden" name="k7" value="#ffffff"/>
+    <input type="hidden" name="k8" value="#222222"/>
+    <input type="hidden" name="k9" value="#00278e"/>
+    <input type="hidden" name="kx" value="#20692b"/>
+    <input type="hidden" name="kj" value="#fafafa"/>
+    <input type="hidden" name="kt" value="p"/>
+    <input type="text" name="q" placeholder="Search this website.." aria-label="Search gotlou.srht.site on DuckDuckGo"/>
+    <button type="submit">Search</button>
+</form>
+<hr />
+<!-- HEAD END -->
+Added on: Wednesday, 01 November, 2023 | Updated on: -
+<h1 id="migrating-to-nixos-part-3">Migrating to NixOS (Part 3)</h1>
+<h2 id="customization-to-the-next-level">Customization to the next
+level</h2>
+<p>It’s been a while since I’ve posted on this series, but a lot has
+changed in that time. I’ve managed to learn more Nix and become more
+comfortable with the ecosystem, which has allowed me to make more
+changes to my system.</p>
+<p>While these changes are less NixOS-specific, it seems much harder to
+me to be able to do and more importantly, maintain them without Nix.</p>
+<p>This post will just be a brief list of all the changes I’ve ended up
+implementing. If you want to follow along at home and copy my configs,
+you can get my <a href="https://git.sr.ht/~gotlou/nix-config">NixOS
+config</a>, clone and search for the required settings.</p>
+<h3 id="downloading-more-ram-no-really">Downloading more RAM (no
+really)</h3>
+<p><a href="">zram</a> is a nifty feature which requires the sacrifice
+of some RAM and then using this RAM to create a compressed swap device
+in memory. In my current config, I have given 1 gigabyte of RAM in
+exchange for 20 gigabytes of zram, which helps mitigate OOM freezes, and
+helps speed up some big compilations.</p>
+<h3 id="oom">OOM</h3>
+<p>Speaking of OOM, rather than using <code>systemd-oomd</code>, which
+didn’t seem to have much of an effect for me, I switched to <a
+href="https://github.com/rfjakob/earlyoom">earlyoom</a>, which ended up
+solving the “system freezes under load” problem for me. The worst I see
+now is that my system becomes a bit less responsive, especially during
+linking.</p>
+<h3 id="no-global-programming-tools">No global programming tools</h3>
+<p>I also decided to embrace Nix dev shells and removed almost all of my
+development tools from my user install, instead using per-project flakes
+to install stuff like the Rust toolchain, C compilers, debuggers, LSPs
+etc. This also allowed me to configure <a href="">mold</a> as the
+default linker for C/C++/Rust projects, which gives me a nice speedup
+during linking.</p>
+<p>In the future, I would like to have these per-project flakes serve as
+an easy way to sandbox my developer environments, such that as soon as I
+enter these directories and the flake loads, I can enter a less
+privileged environment. One of the flaws with the way <a
+href="https://git.sr.ht/~gotlou/code-sandbox"><code>code-sandbox</code></a>
+does it is that it is a very rigid shell script. A Nix module that can
+be applied and adjusted per flake would be much better (for example,
+does it require IPC access? does it need Wayland or sound?)</p>
+<h3 id="cli-improvements">CLI improvements</h3>
+<p>I’ve replaced some of the GNU coreutils with Rust rewrites for
+getting a faster, more modern equivalent. Some of these are also aliased
+so typing <code>ls</code> actually triggers <code>eza</code>, for
+example.</p>
+<p>This includes:</p>
+<ul>
+<li><a href="https://github.com/sharkdp/bat"><code>bat</code></a>
+instead of <code>cat</code> (I liked it so much I now use
+<code>bat</code> as my pager instead of less)</li>
+<li><a href="https://github.com/eza-community/eza"><code>eza</code></a>
+instead of <code>ls</code></li>
+<li><a href="https://github.com/bootandy/dust"><code>dust</code></a>
+instead of <code>du</code> (this runs much faster than the normal
+<code>du</code>)</li>
+<li><a href="https://github.com/dandavison/delta"><code>delta</code></a>
+instead of <code>diff</code> for rendering pretty diffs with colors</li>
+<li><a href="https://github.com/BurntSushi/ripgrep"><code>rg</code></a>
+instead of <code>grep</code> (I earlier had this aliased but now I never
+type <code>grep</code>, <code>rg</code> is smaller to type anyways)</li>
+<li>I also installed <a
+href="https://github.com/lotabout/skim"><code>sk</code></a>, which is a
+Rust replacement for <code>fzf</code>.</li>
+</ul>
+<p>I have an alias called <code>scanfor</code> which allows me to use
+<code>sk</code> and ripgrep to search in all text files contained in a
+folder recursively and open that file up in Helix. This means if I’m not
+sure about where I have <code>services.syncthing</code> defined in my
+Nix config repo, I can type <code>scanfor</code> and search for
+<code>services.syncthing</code>. A press of the Enter key will open the
+required file in Helix. This has served me well a lot, and its
+usefulness scales with the size of the project I would work on.</p>
+<p>Similar to this, I also have the <code>.</code> alias, which just
+runs <code>hx .</code>. This opens up the Helix file picker at the
+current folder, allowing me to search by file name and open that
+file.</p>
+<p>There are also some aliases which shorten <code>nixos-rebuild</code>
+commands, so I can execute them from anywhere in my filesystem and have
+easy commands for switching to a new NixOS config, or updating my
+system.</p>
+<p>I also have my prompt configured using <a
+href="https://starship.rs/">starship</a>, which looks better than the
+bash default.</p>
+<p><a href="https://magit.vc/"><code>magit</code></a> was also added
+(via an opinionated config with Vim keybindings) via an overlay. Though
+I don’t use <code>magit</code> much in daily practice, it has come in
+handy for speeding up some more complicated git operations.</p>
+<h3 id="security-enhancements">Security enhancements</h3>
+<p>I’ve switched to using <code>doas</code> instead of <code>sudo</code>
+for commands that need elevated permissions. From my simple uses (and
+for the majority of single user Linux desktop users) <code>doas</code>
+is more than enough, and it has a much smaller codebase, with a lot less
+attack surface, which makes it a more secure utility.</p>
+<p>I finally enabled the firewall on my system, and have ports open for
+KDE Connect, Syncthing etc.</p>
+<p>I have a custom KeepassXC overlay (basically, an overlay is a way you
+can modify a Nix function) which disables X11 and networking support, so
+it can only run as a Wayland program and only make Unix sockets (for
+communication with browser extension).</p>
+<p>I replaced the default NTP daemon on my system
+(<code>systemd-timesyncd</code>) with <a
+href="https://chrony-project.org/"><code>chrony</code></a>, since chrony
+has support for NTS (Network Time Security), which reduces the chances
+that an attacker can manipulate the time on my system by spoofing NTP
+packets.</p>
+<p>I also took this time to learn a bit more about systemd service
+hardening, and used that knowledge (and a ton of trial and error) to
+sandbox some services, such as Tailscale, such that they don’t have
+access to my private files and any permissions that they don’t really
+need.</p>
+<h3 id="home-manager-2-electric-boogaloo">Home Manager 2: Electric
+Boogaloo</h3>
+<p>I’ve also restarted using <a
+href="https://github.com/nix-community/home-manager">Home Manager</a>
+for config file management. I had removed Home Manager from my config
+earlier since it wasn’t working properly when I moved my NixOS system
+config to flakes, but now I’ve added it as a NixOS module, which means
+that whenever I need to make a change in Home Manager, I have to rebuild
+my system.</p>
+<p>I’ve ended up moving most, if not all of my configs to Home Manager,
+including ones for:</p>
+<ul>
+<li>git</li>
+<li>wezterm (I’ve made it more minimal than what it is by default)</li>
+<li>helix</li>
+<li>htop (copied and pasted config into Home Manager and made it
+immutable)</li>
+<li>All my shell aliases and configs are also configured using Home
+Manager</li>
+</ul>
+<p>I’ve also been able to house my KDE Plasma config in Nix as well,
+thanks to the excellent <a
+href="https://github.com/pjones/plasma-manager">plasma-manager</a>
+module. This, combined with creating immutable config files for certain
+Plasma/KDE programs not covered by <code>plasma-manager</code>, has led
+me to have virtually my entire desktop config within Nix. I even have
+two Plasma plugins as git submodules within my Nix config repo.</p>
+<p>Anything not in Home Manager is covered by Impermanence, and if some
+data isn’t covered by either of these, it is either non-config personal
+data, like pictures and personal files, or it doesn’t matter ;)</p>
+<h3 id="key-remapping">Key Remapping</h3>
+<p>I tried out <a
+href="https://github.com/rvaiya/keyd"><code>keyd</code></a>, which is a
+pretty simple program that helps you remap keys for custom shortcuts
+etc.</p>
+<p>I simply swap the Caps Lock and Escape keys, and the difference is
+truly night and day. It took me maybe a week or two to fully train my
+fingers to not instinctively press the actual Escape key in Helix and
+instead go for the Caps Lock key.</p>
+<p>I also have a layer that activates when Caps Lock is held, and this
+has let me map the h, j, k and l keys to be arrow keys. For example,
+Caps Lock + h is equivalent to the left arrow key. This is a gamechanger
+and lets me bring a little bit of Vim to every program.</p>
+<h3 id="zfs">ZFS</h3>
+<p>Truly “the last word in filesystems”, I decided to try out ZFS on my
+machine, since I was becoming more concerned about the future of btrfs,
+given that Red Hat dropped it from RHEL and the new kid on the block
+seems to be bcachefs. ZFS also has native encryption, which seemed
+intriguing, even if some metadata about the subvolumes (datasets in ZFS
+parlance) is leaked. Using native encryption seemed to be the more
+reliable option, since ZFS’ error correction can work with it, and there
+is one less layer that can bork things. NixOS is also one of the few
+Linux distros that has first-class ZFS support (ZFS is harder to set up
+on other distros due to the complicated licensing issues preventing ZFS’
+inclusion in the Linux kernel, but NixOS hand waves this away for you
+and gives you ZFS support even in its default USB install media).</p>
+<p>I don’t really use the advanced features of btrfs or ZFS outside of
+creating subvolumes and enabling zstd compression on them, so I am a
+poor judge of which filesystem is better. However, I feel more
+comfortable with a ZFS install due to the above mentioned reasons.</p>
+<h3 id="testing-out-reproducibility">Testing out Reproducibility</h3>
+<p>After porting my <code>installnix.sh</code> script to create ZFS
+partitions and use native encryption instead of LUKS, I ended up
+reinstalling my system. Before reinstallation, I opted to only back up
+my <code>/persist</code> and select parts of my home folder. I opted not
+to back up any dotfile that wasn’t in <code>/persist</code>.</p>
+<p>When the reinstall had been completed, I was only missing one or two
+things, which was solved by getting the Nix repo back on my system and
+rebooting (Plasma was missing the two plugins I have stored in my repo
+as submodules)</p>
+<h3 id="repo-refactoring">Repo refactoring</h3>
+<p>There were a couple refactors in my Nix config repo to help organize
+the code. I now try to have each service have its own file and import
+that separately, which makes it super easy to make a service disappear
+entirely from my system, simply by commenting it out. It also makes it
+easy to paste snippets from others’ configs or let others copy my code
+for their configs, as well as share some configs between different NixOS
+configurations. This is how my Raspberry Pi config lives off a lot of
+the same config as my main machine’s config.</p>
+<h3 id="conclusion">Conclusion</h3>
+<p>I’ve ended up making quite a lot of changes in my system, and the
+best part is that these are stable changes; an OS update isn’t going to
+wipe them out, or have me tweak a new setting. Even if something like
+this is required, it will go inside a git repo and not an undocumented,
+obscure path in the traditional FHS where I will forget all about
+it.</p>
+<p>I also feel far more comfortable trying out experimental software or
+new tools in my workflow, like <code>keyd</code>, on NixOS since I know
+I can always rollback to the old method by reverting some commits or
+rebooting.</p>
+<!-- FOOT START -->
+<hr />
+<p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and footers (including this one) to any document that’s published here.</p>
+<p>Copyright © 2023 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a></p>
+</html>
