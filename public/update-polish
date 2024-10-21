@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+for file in *.html; do
+  if [ "$file" == "index.html" ]; then
+    blog-helper update-index index.html
+  else
+    blog-helper update-polish "$file"
+  fi
+done
