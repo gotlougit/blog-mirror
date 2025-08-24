@@ -1,0 +1,195 @@
+<html>
+<head>
+	<link rel='stylesheet' type='text/css' href='styles/style.css'>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>AI All The Way Down: 2 - Nonchalant Guidance</title>
+</head>
+<div align='center'>
+<h1><a href="index.html">Nonchalant Guidance</a></h1>
+<p><a href='aboutme.html'>About Me</a>·<a href='comingsoon.html' title='coming soon!'>RSS</a>·<a href="https://sr.ht/~gotlou">My Projects</a>·<a href='https://linkedin.com/in/saksham--mittal' title='LinkedIn'>LinkedIn</a></p>
+</div>
+<form method="get" id="ddgSearch" action="https://duckduckgo.com/">
+    <input type="hidden" name="sites" value="gotlou.com"/>
+    <input type="hidden" name="k7" value="#ffffff"/>
+    <input type="hidden" name="k8" value="#222222"/>
+    <input type="hidden" name="k9" value="#00278e"/>
+    <input type="hidden" name="kx" value="#20692b"/>
+    <input type="hidden" name="kj" value="#fafafa"/>
+    <input type="hidden" name="kt" value="p"/>
+    <input type="text" name="q" placeholder="Search this website.." aria-label="Search gotlou.srht.site on DuckDuckGo"/>
+    <button type="submit">Search</button>
+</form>
+<hr />
+<!-- HEAD END -->
+Added on: Sunday, 24 August, 2025 | Updated on: -
+<h1 id="ai-all-the-way-down-2">AI All The Way Down: 2</h1>
+<p>It has been quite some time since I have written on this website, but
+I wasn’t exactly up to anything that was blog-worthy during this time.
+I’ve been following LLMs quite a bit during this time, and experimenting
+and learning more about this new technology, as well as the
+ramifications of its advancements and even mere existence.</p>
+<p>Last time around, I tried out LLMs by using aider to write a game
+tracking tool in Rust. I concluded, based on the fact that almost every
+commit the LLM made, there would be one from me which fixed up the code
+that it wrote in some small or big fashion which prevented it from
+working as intended, that LLMs still have quite a ways to go before we
+realistically really think that they’re replacing software
+engineers.</p>
+<p>Well, by this time: a new year has come and is more than halfway over
+(happy belated new year!), I’ve graduated from college (yay!), and LLMs
+have gotten much better. Thanks to advancements like training on
+synthetic data, reasoning models performing better than ever, the
+proliferation of DeepSeek R1 and other highly capable open source
+models, the MCP protocol (which allows LLMs to easily integrate with so
+many tools and services, it feels like Web 2.0 all over again), agents
+etc, it feels like enough advancement has been made that my experiment
+deserves a revisit.</p>
+<h2 id="tool-and-llm-of-choice">Tool and LLM of choice</h2>
+<p>One positive is that you no longer need to always pay-per-use for API
+usage. Anthropic, when launching Claude Code (their coding agent that
+can just do tasks you give it with very little handholding except for
+all the CLAUDE.md files you’ll see these days, which doesn’t count
+because of course it doesn’t), allowed their $100 and $200/month
+subscription users to use Claude Code as part of their plan. This
+basically made these plans (which give you access to Claude Opus 4 and a
+lot of Claude Sonnet 4, the latest and greatest models from Anthropic) a
+really good deal if you made a ton of API calls.</p>
+<p>Later on, they even extended this to the $20/month Pro plan, allowing
+people like me to dip their toe in the Sonnet 4 + Claude Code pool
+(sorry, no Opus for us except in the web frontend, which is fair I
+guess) with a lot less upfront committment.</p>
+<p>I ended up signing up almost immediately and started putting both the
+plan’s limits and the model itself through their paces. (Note: I tested
+most of this out before Anthropic introduced the weekly limits to curb
+people racking up an impressive amount of usage that would undoubtedly
+not be covered even by an upfront $200 monthly fee, let alone $20).</p>
+<h2 id="a-note-on-cost">A Note on Cost</h2>
+<p>For $20 (and I tracked my usage limits), I was able to get tokens
+that were worth around $10-$15 within maybe around 4 days of relatively
+heavy usage (3-4 hour sessions per day) as well as a lot of one-off
+usages for random “web searches” and heavy Opus thinking in the
+claude.ai web frontend. If I extrapolate this out for a whole month I
+guess I have come real far ahead of paying for my usage as I go through
+the API.</p>
+<p>This makes sense, as LLM providers have steadily been figuring out
+ways to optimize their inference costs over time. Gone, it seems, are
+the days when even API usage would act as a VC-funded rocket for growth
+at all costs, and instead thanks to advancements in GPU usage, batching
+and even (alleged) quantizations/model downgrades, the LLM providers all
+end up making money off the API, even mindblowingly-cheap DeepSeek on
+their R1 API during off-peak hours and batched requests (though it does
+train on your data).</p>
+<h2 id="the-task-at-hand">The Task at Hand</h2>
+<p>Last time, I had Claude 3.5 work on a Rust program, having it build
+it from scratch (vibe coding before vibe coding was a term). It faired
+decently well, but this time I had a more interesting task in hand, one
+that would definitely test out its ability to work within an existing
+codebase- my NixOS repo.</p>
+<p>This would solve a long-running problem, one I’ve had ever since I
+switched to NixOS: I don’t know how to write Nix.</p>
+<p>To be fair, this is an exaggeration. I’ve picked up some stuff as I
+have used it, and I have frequently read package definitions to write
+small overlays. However, some stuff has always been out of my skill
+level, but not too far out. Most of my issues have been with taking a
+Nix package definition for example and not being able to figure out how
+to make it an overlay that Nix picks up as an overlay and then just have
+it use that package definition instead. Some other times, I’ve never
+figured out heads or tails of how to get something done.</p>
+<p>So now, I had Claude Code solve all my problems for me ;).</p>
+<p>The first thing I had it do is create a Nix package and service for
+radicale-with-decsync, which is a plugin that allows the Radicale
+calendar server to sync events through Decsync, which just saves data to
+a folder and relies on Syncthing to sync the data to other devices. This
+sort-of worked: I cloned the radicale-with-decsync repo inside my
+nix-config one and allowed Claude Code access to it. However, something
+in this whole plugin + radicale stack was failing, so I ended up
+removing it.</p>
+<p>Instead I had it write a service for tokidoki, which is a small
+Go-based CalDAV server that I could connect to over Tailscale (and
+localhost for my desktop calendar client). Once again I cloned the repo
+and gave Claude Code carte blanche, and this time it actually ended up
+working 100%! This saved me immense time and energy and as a result I
+was far more empowered than ever. To me it felt like this: if switching
+to NixOS and an almost 100% declarative config made making radical
+changes to the desktop, sandboxing etc 80% less tedious, Claude Code was
+maybe the last 10-15%, with the remaining percentage just being the cost
+of spending some time observing everything.</p>
+<p>Empowered so much by this, I ended up putting Claude Code on a more
+tough task: sandboxing the NetworkManager service. This was one of the
+services I tried sandboxing back in the day, but I was overly
+restrictive (since NetworkManager has to have access to devices, the
+network and IPC to some other services) and I had broken my networking.
+I suppose I could have fixed this by just enabling each and every toggle
+one by one, but that would’ve taken far too long and more importantly,
+would be boring.</p>
+<p>Why not get Claude Code to do it?</p>
+<p>I tasked it on this, and it pretty much ended up getting a config
+that just worked. The exposure level is currently at a 6.9 from the high
+8-9s which would be pretty exposed, and it doesn’t have access to my
+home folder or persistent user data, which is one of the most important
+things to protect in my opinion.</p>
+<p>There were a couple small tasks too, like using the prebuilt version
+of Zed from Github rather than the nixpkgs version in order to get
+updates faster etc that it knocked out pretty fast.</p>
+<h2 id="observations">Observations</h2>
+<ol type="1">
+<li><p>Claude Code LOVES documenting. If it did a medium amount of work
+(some amount of thinking + writing a bunch of Nix), it would also
+proceed to write all about its great work inside a lengthy Markdown
+file. This annoyed me a lot, especially since it still did this even
+after I wrote some instructions to not do this. In order to preserve
+some of my tokens and sanity, I ended up having to slightly threaten the
+model to not ever write any documentation files like this.
+Coincidentally, Claude Code restricted detailing its exploits inside the
+chat after that.</p></li>
+<li><p>It is very good at finding things on its own. With Aider, the
+human is in the driver’s seat and the model very meekly requests
+permission to view certain files based off a repo map that is passed
+into the context. Claude Code ends up fearlessly ripgrep-ing its way
+through my code.</p></li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>So what did we learn this time around?</p>
+<ol type="1">
+<li><p>Agents (more specifically Claude Code) are pretty damn impressive
+now compared to last year. A combination of better understanding of the
+models, the models themselves improving, and better competition have
+ended up getting more out of this LLM trend.</p></li>
+<li><p>Claude’s Pro plan is a great deal. I still had the sub after they
+updated their usage limits, but never really seemed to run out of
+tokens, except after a fairly intense session where I tried to get it to
+convert a curl command into an equivalent Go method (to be fair, the
+command was somewhat complex and made by a website that I wanted to
+scrape). Even that month, I was able to get around $15-20 of equivalent
+API usage out of it, which is definitely a win in my book. OpenAI and
+Google are taking notes, especially Google’s gemini-cli team which has a
+very generous free limit for now (guess what LLM provider I’m headed to
+next!)</p></li>
+<li><p>Are they going to take jobs? I am of the opinion that due to
+their unpredictable nature and need to correct/review their work, we
+would still need a human in the loop to keep guiding it. Even on a
+personal level, there are usually small tasks I would like to do, but
+the effort required to complete that work, or the “activation energy”,
+as I like to call it, seems too high to even complete it. Sure, it is a
+doable task, but it is not exactly work that I would want to put too
+much time towards.</p></li>
+</ol>
+<p>However, I don’t want to sound <strong>too</strong> pro-LLM. While
+the technology is impressive, it feels more like it just exemplifies you
+(in terms of coding at least). If you’re a good software engineer, an
+LLM and the proper agent is probably going to do wonders for cranking
+good code out. If you’re a novice, you won’t know when the LLM messes up
+or how badly it did, if at all. So for now, I suppose we’ll just have to
+keep on learning and keeping an eye on this space.</p>
+<!-- FOOT START -->
+<hr />
+<p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a
+    href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a
+    href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and
+  footers (including this one) to any document that’s published here.</p>
+<p>Copyright © 2024 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is
+  licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a>
+</p>
+
+</html>
