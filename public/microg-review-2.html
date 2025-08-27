@@ -1,0 +1,210 @@
+<html>
+
+<head>
+  <link rel='stylesheet' type='text/css' href='styles/style.css'>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Living Without Google Play - Nonchalant Guidance</title>
+</head>
+<div align='center'>
+  <h1><a href="index.html">Nonchalant Guidance</a></h1>
+  <p><a href='aboutme.html'>About Me</a>·<a href='comingsoon.html' title='coming soon!'>RSS</a>·<a
+      href="https://sr.ht/~gotlou">My Projects</a>·<a href='https://linkedin.com/in/saksham--mittal'
+      title='LinkedIn'>LinkedIn</a></p>
+</div>
+<form method="get" id="ddgSearch" action="https://duckduckgo.com/">
+  <input type="hidden" name="sites" value="gotlou.com" />
+  <input type="hidden" name="k7" value="#ffffff" />
+  <input type="hidden" name="k8" value="#222222" />
+  <input type="hidden" name="k9" value="#00278e" />
+  <input type="hidden" name="kx" value="#20692b" />
+  <input type="hidden" name="kj" value="#fafafa" />
+  <input type="hidden" name="kt" value="p" />
+  <input type="text" name="q" placeholder="Search this website.." aria-label="Search gotlou.srht.site on DuckDuckGo" />
+  <button type="submit">Search</button>
+</form>
+<hr />
+<!-- HEAD END -->
+Added on: Wednesday, 27 August, 2025 | Updated on: -
+<h1 id="living-without-google-play-services-again">Living Without Google Play
+  Services Again</h1>
+<h2 id="an-update-to-attempt-to-de-google">An update to attempt to
+  De-Google</h2>
+<p>It has been quite a long time <a href="microg-review.html">(3+
+    years!)</a> since I last shared info on my personal experiences with <a href="https://microg.org">MicroG</a>, the
+  free and open source software
+  that provides a replacement for Google Play libraries that most apps
+  that are practically required to exist in today’s society rely on, but
+  with the bonus that 1. they don’t spy on you and relay creepy info back
+  to Google, and 2. also come with just enough instability to make using a
+  new app equal parts exciting and dreadful (bonus if the app has anything
+  to do at all with payments, finance or some sort of security).</p>
+<p>A lot has changed since then. When I first published the article in
+  2022, the pandemic lockdown was just receeding for me. I was yet to even
+  join college, so at home, I rarely used my phone. However, once I
+  stepped out of my house, I had to keep this device on me almost at all
+  times so that I could keep updated with whatever was happening at home
+  and at college, and also be able to pay for travel, food etc on my own,
+  mostly cashless in the form of UPI.</p>
+<p>This meant installing more apps, using those apps more and generally
+  being steered to use apps that relied on Google Play Services more.</p>
+<p>In addition, Google themselves started tightening the screws, most
+  recently with Play Integrity, which acts as a replacement for the
+  outgoing SafetyNet API. This is a draconian, pathetic attempt at
+  security which ends up stating that anything the manufacturer and Google
+  ship the phone with is secure. This is completely incorrect. The current
+  system deems a phone with an older Android version but a passing Play
+  Integrity check more secure than one running the latest Android but on a
+  custom ROM. The only thing Play Integrity is able to say that I also
+  agree with is that if it passes, the phone is in a “stock” mode and
+  conforms to the Google standards and thus can be shipped with Google
+  services out of the box.</p>
+<p>Play Integrity, sadly is being used in a wide variety of apps, the
+  most egregious of which includes McDonald’s. Apparently those fast food
+  deals are just worth the extra protection from malicious apps I
+  guess.</p>
+<p>So, given all of this, how has my experience fared? Fairly decent, I
+  would say. I’ll give some up-to-date info on the apps first and then
+  detail my personal history.</p>
+<h3 id="banking-apps">Banking Apps</h3>
+<p>Let’s get this one right out of the way. My banking apps work, but
+  your mileage may vary. This will depend on your bank, though! Mine were
+  fine, though interestingly enough one started to stop working after an
+  update on my old phone, though installing a ROM and MicroG on my new
+  phone did not yield the same result even though both were aftermarket
+  operating systems that did not pass Play Integrity. Maybe it was using
+  some other integrity measure? I don’t know.</p>
+<p>As for UPI payment apps, I use:</p>
+<ul>
+  <li>PayTM: works fine, though recently I have seen that if a UPI request
+    is sent online over to the app, it complains about non manufacturer OS
+    and stops the payment flow. However, payments launched through another
+    app intent on Android, scanning a QR code or entering a phone number all
+    work.</li>
+</ul>
+<p>Also, when setting it up on my new phone, it did in fact prevent me
+  from signing up, but downgrading the APK to one from circa May or June
+  2025 worked, and updating did not kick me out either.</p>
+<ul>
+  <li>
+    <p>Cred: works without any issues</p>
+  </li>
+  <li>
+    <p>BHIM: used to work until the big redesign update, after which it
+      needed Play Integrity. (I ended up spoofing Play Integrity and it works
+      fine, though it seemingly can’t generate a QR code for others to
+      scan)</p>
+  </li>
+</ul>
+<p>I have tried to use:</p>
+<ul>
+  <li>Amazon Pay UPI: signup complains about the app not being from Play
+    Store. The wallet works though.</li>
+</ul>
+<p>These apps did not kick me out immediately upon trying to sign up,
+  and so may or may not work:</p>
+<ul>
+  <li>PhonePe</li>
+  <li>WhatsApp Pay</li>
+</ul>
+<p>Additionally, while I did not try it for what should be obvious
+  reasons, Google Pay (both the Indian UPI version and the global version,
+  if they aren’t the same app anymore) usually won’t work on custom ROMs +
+  MicroG.</p>
+<h3 id="normal-apps">Normal Apps</h3>
+<p>Most other apps are not nearly this finicky. Special mention once
+  again to McDonald’s who, for the greater good, have painstakingly
+  implemented seemingly one of the most advanced client attestation
+  tooling into their app so that the chosen ones (running spyware and
+  ad-ridden software) can securely order fast food at a seemingly cheap
+  price.</p>
+<p>Usually, if you enable everything in MicroG and still don’t log in,
+  it is usually enough to get apps to work. Location and embedded maps
+  used to be an issue but no longer.</p>
+<ul>
+  <li>
+    <p>Until their switch to their own mapping provider, Ola Cabs did
+      not work.</p>
+  </li>
+  <li>
+    <p>The trick I described in my old article about getting Google Maps
+      to pick up my location still works if Maps did not pick up my location.
+      Also I have yet to find a good alternative to Google Maps :(. Whenever I
+      go to a new city, Google Maps ends up being the single most useful app
+      on my phone to orient me efficiently.</p>
+  </li>
+  <li>
+    <p>Last time, I mentioned how I used some apps like GMail in the web
+      browser. I still do this for GMail on one or two accounts, but for rest
+      I am now using Thunderbird for Android, which allows me to quickly read
+      and send email from a nice interface and a privacy-friendly client. For
+      other apps like Uber, which I used to use in the web, I now use the app
+      since a lot of their blockers (like the map API) have been resolved by
+      MicroG.</p>
+  </li>
+  <li>
+    <p>Some apps (shown above or below) will not work. For this it helps
+      to have friends ;) or an older phone that can run stock operating
+      systems that you can get your small task done on and then power
+      off.</p>
+  </li>
+</ul>
+<h3 id="government-apps">Government Apps</h3>
+<p>These are very hit or miss, like banking. I haven’t used every single
+  app out there, but this is my experience with the ones I have used:</p>
+<ul>
+  <li>
+    <p>DigiLocker: complains about developer mode being on, but after
+      disabling it, it works fine. The website is also fine if you need to
+      just download docs, but the app is useful to show in place of a physical
+      ID.</p>
+  </li>
+  <li>
+    <p>mAadhaar: complains about custom ROM and doesn’t work. The
+      website works fine enough to lock/unlock biometrics etc, although there
+      is a 2FA option that uses mAadhaar app as a TOTP replacement to log in
+      as opposed to SMS-based 2FA.</p>
+  </li>
+  <li>
+    <p>UMANG + Aadhaar FaceRD (not to be confused with mAadhaar): I had
+      to use these two apps to create a UAN number. The Aadhaar FaceRD app
+      does not work on MicroG, even with Play Integrity spoofing. I had to
+      borrow someone else’s phone for this step. However, the UMANG app seems
+      to work fine.</p>
+  </li>
+</ul>
+<h3 id="conclusion">Conclusion</h3>
+<p>As always, I recommend checking out <a href="https://plexus.techlore.tech/">Plexus</a> for a lot of these apps
+  to see if it is just you experiencing issues or if there is a genuine
+  app incompatibility. Once again, I cannot recommend MicroG for an
+  average user since it doesn’t cover every single use case in every
+  single scenario. However, if privacy is important for you and you can’t
+  or won’t give up using some of the big apps that most people use, then
+  MicroG strikes a really good balance between privacy and normalcy. For
+  me, it makes me feel a lot better about using a phone whenever I have
+  to, knowing that there is far less creepy data being sent around about
+  my usage.</p>
+<p>This is a tumultuous time for custom ROMs, MicroG and other
+  modifications in the Android app ecosystem. Just yesterday, Google
+  detailed how it planned to disallow apps from unverified developers from
+  running on certified Android devices, taking one more step towards the
+  growing iOS-ification of Android, a trend where Android increasingly
+  becomes more locked down and more power rests in the hands of Google, a
+  sharp contrast from the olden days of maybe 10+ years ago when Nexus
+  phones ruled in the minds and hearts of Android enthusiasts, almost
+  every phone’s bootloader was promptly unlocked and a Cyanogenmod ROM was
+  flashed.</p>
+<p>It is going to be interesting for sure to see how things turn out,
+  but I am glad that some people are doing their best to fight back
+  against this trend.</p>
+<!-- FOOT START -->
+<hr />
+<p>This website was made using <a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a>, <a
+    href="https://pandoc.org/" title="To convert Markdown to HTML pages">Pandoc</a>, and a <a
+    href='https://sr.ht/~gotlou/blog-helper' title='blog-helper'>custom program</a> to automatically add headers and
+  footers (including this one) to any document that’s published here.</p>
+<p>Copyright © 2025 Saksham Mittal. All rights reserved. Unless otherwise stated, all content on this website is
+  licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 International License</a>
+</p>
+
+</html>
